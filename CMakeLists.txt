@@ -12,7 +12,9 @@ find_package(Qt6 COMPONENTS
         Core
         REQUIRED)
 
-add_executable(chatclient main.cpp)
+add_executable(chatclient main.cpp
+        model/data.h
+)
 target_link_libraries(chatclient
         Qt::Core
 )
