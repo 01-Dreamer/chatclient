@@ -1,5 +1,0 @@
-D:/AllData/CLion/chatclient/cmake-build-debug/CMakeFiles/chatclient.dir
-D:/AllData/CLion/chatclient/cmake-build-debug/CMakeFiles/edit_cache.dir
-D:/AllData/CLion/chatclient/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-D:/AllData/CLion/chatclient/cmake-build-debug/CMakeFiles/chatclient_autogen_timestamp_deps.dir
-D:/AllData/CLion/chatclient/cmake-build-debug/CMakeFiles/chatclient_autogen.dir
