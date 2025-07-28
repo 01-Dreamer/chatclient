@@ -1,9 +1,9 @@
 {
   "name": "chatclient",
   "version": "1.0.0",
-  "description": "An Electron application with Vue",
+  "description": "chat",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "failedman",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
-    "@electron-toolkit/utils": "^4.0.0"
+    "@electron-toolkit/utils": "^4.0.0",
+    "element-plus": "^2.10.4",
+    "vue-router": "^4.5.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",
