@@ -1,10 +1,10 @@
 <template>
-  <div class="login-panel">
+  <div class="register-panel">
     <div class="title drag">
       <span class="title-text">Chat</span>
       <el-icon class="close-icon no-drag" @click="exitApp"><Close /></el-icon>
     </div>
-    <div class="login-form">
+    <div class="register-form">
       <el-form :model="formData" @submit.prevent>
         <el-form-item prop="email">
           <el-input size="large" v-model="formData.email" clearable placeholder="请输入邮箱">
@@ -55,12 +55,14 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 
 // 表单
 const formData = ref({})
 const isDisableRegister = computed(() => {
   return !formData.value.email ||
     !formData.value.password ||
+    !formData.value.confirmPassword ||
     !formData.value.captchaCode
 })
 
@@ -72,6 +74,16 @@ const exitApp = () => {
 // 注册
 const loading = ref(false)
 const register = () => {
+  if(formData.value.password !== formData.value.confirmPassword) {
+    ElMessage({
+      message: '两次输入的密码不一致',
+      type: 'warning',
+      duration: 1000,
+      showClose: true,
+      grouping: true
+    })
+  }
+
   loading.value = true
   console.log(formData)
   loading.value = false
@@ -86,7 +98,7 @@ const goToLogin = () => {
 </script>
 
 <style scoped>
-.login-panel {
+.register-panel {
   width: 100%;
   height: 100%;
 }
@@ -112,7 +124,7 @@ const goToLogin = () => {
   color: white;
 }
 
-.login-form {
+.register-form {
   margin-top: 10px;
 }
 
