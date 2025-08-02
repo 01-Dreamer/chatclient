@@ -1,5 +1,7 @@
 <template>
-聊天界面
+  <div>
+    聊天
+  </div>
 </template>
 
 <script setup>
