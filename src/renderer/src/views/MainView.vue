@@ -3,7 +3,7 @@
     <template #left-content>
       <el-menu class="sider" default-active="chat">
         <div class="top-menu">
-          <div class="avatar">
+          <div class="user-avatar">
             <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
           </div>
           <el-menu-item class="no-drag" index="chat" @click="changeMenu('chat')">
@@ -21,10 +21,37 @@
       </el-menu>
     </template>
     <template #mid-content>
-      MID
+      <div class="top-search">
+        <div class="search-box">
+          <el-input class="search-input no-drag" size="small" placeholder="搜索">
+            <template #prefix>
+              <el-icon><Search /></el-icon>
+            </template>
+          </el-input>
+          <el-icon class="plus-icon no-drag"><Plus /></el-icon>
+        </div>
+      </div>
+      <div class="session-item">
+        <el-badge :max="99" :value="99" class="session-avatar">
+          <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
+        </el-badge>
+        <div class="session-info">
+          <div class="session-info-top">
+            <div class="session-name">
+              会话名称
+            </div>
+            <div class="session-latest-time">
+              7/24
+            </div>
+          </div>
+          <div class="session-info-bottom">
+            最近消息
+          </div>
+        </div>
+      </div>
     </template>
     <template #right-content>
-      RIGHT
+        RIGHT
     </template>
   </Layout>
 </template>
@@ -62,14 +89,14 @@ const changeMenu = (clickMenu) => {
 }
 
 .top-menu {
-  margin-top: 10px;
+  margin-top: 5px;
 }
 
 .bottom-menu {
   margin-bottom: 0;
 }
 
-.avatar {
+.user-avatar {
   height: 55px;
   display: flex;
   justify-content: center;
@@ -77,7 +104,8 @@ const changeMenu = (clickMenu) => {
 }
 
 .avatar-img {
-  height: 40px;
+  width: 38px;
+  height: 38px;
 }
 
 :deep(.el-menu-item.is-active) {
@@ -91,5 +119,60 @@ const changeMenu = (clickMenu) => {
 .menu-icon {
   font-size: 25px;
   display: flex;
+}
+
+.top-search {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 65px;
+  margin-bottom: 5px;
+}
+
+.search-box {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  height: 25px;
+  margin: auto 12px;
+}
+
+.search-input {
+  height: 100%;
+}
+
+.plus-icon {
+  cursor: pointer;
+  background: #EAEAEA;
+  height: 100%;
+  margin-left: 10px;
+  padding: 0 3px;
+}
+
+.plus-icon:hover {
+  background: #D8D8D8;
+}
+
+.session-item {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 60px;
+  background: red;
+}
+
+.session-avatar {
+  margin: auto 10px;
+}
+
+.session-info {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.session-info-top {
+  display: flex;
+  justify-content: space-between;
 }
 </style>
