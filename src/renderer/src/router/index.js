@@ -20,13 +20,12 @@ const routes = [
     path: '/main',
     name: 'main',
     component: () => import('../views/MainView.vue'),
-
     children: [
       {
         path: '/chat',
         name: 'chat',
         components: {
-          layoutLeft: () => import('../views/ChatView.vue'),
+          layoutLeft: () => import('../views/SessionView.vue'),
           layoutRight: () => import('../views/ChatView.vue')
         }
       }
