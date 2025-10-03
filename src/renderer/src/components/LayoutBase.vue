@@ -72,7 +72,7 @@ const exitApp = () => {
 
 .right-content {
   background: #EDEDED;
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
 }
@@ -85,7 +85,7 @@ const exitApp = () => {
 .icon {
   font-size: 15px;
   cursor: pointer;
-  padding: 10px;
+  padding: 3px 12px;
 }
 
 .icon:hover {

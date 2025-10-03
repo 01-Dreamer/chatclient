@@ -1,12 +1,15 @@
 <template>
   <div class="session-item no-drag">
-    <el-badge :max="99" :value="99" class="session-avatar">
+    <el-badge :max="99" :value="9" class="session-avatar">
       <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
     </el-badge>
     <div class="session-info">
       <div class="session-info-top">
         <div class="session-name">
           会话名称
+          <el-icon class="group-icon" v-show="isGroup">
+            <ChatDotSquare />
+          </el-icon>
         </div>
         <div class="session-latest-time">
           7/24
@@ -19,7 +22,7 @@
   </div>
 
   <div class="session-item no-drag">
-    <el-badge :max="99" :value="99" class="session-avatar">
+    <el-badge :max="99" :value="2" class="session-avatar">
       <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
     </el-badge>
     <div class="session-info">
@@ -39,6 +42,8 @@
 </template>
 
 <script setup>
+import { ref } from 'vue'
+const isGroup = ref(true)
 
 </script>
 
@@ -66,7 +71,7 @@
 
 .session-info {
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   width: 100%;
 }
 
@@ -79,6 +84,10 @@
   font-size: 14px;
   line-height: 1.4;
   font-weight: 350;
+}
+
+.group-icon {
+  color: #64B5F6;
 }
 
 .session-latest-time {
