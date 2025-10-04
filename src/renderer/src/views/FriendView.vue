@@ -51,16 +51,12 @@ const friends = ref([
   { id: 2, name: '李四', avatar: Avatar },
   { id: 3, name: '王五', avatar: Avatar },
   { id: 4, name: '赵六', avatar: Avatar },
-  { id: 1, name: '张三', avatar: Avatar },
-  { id: 2, name: '李四', avatar: Avatar },
-  { id: 3, name: '王五', avatar: Avatar },
-  { id: 4, name: '赵六', avatar: Avatar }
 ])
 
 const groups = ref([
-  { id: 11, name: '相亲相爱一家人', avatar: Avatar },
-  { id: 12, name: '公司项目群', avatar: Avatar },
-  { id: 13, name: '周末开黑小队', avatar: Avatar }
+  { id: 11, name: '群聊A', avatar: Avatar },
+  { id: 12, name: '群聊B', avatar: Avatar },
+  { id: 13, name: '群聊C', avatar: Avatar }
 ])
 
 
