@@ -64,6 +64,8 @@ const exitApp = () => {
 }
 
 .mid-content {
+  display: flex;
+  flex-direction: column;
   width: 225px;
   border-left: 1px solid #D8D8D8;
   border-right: 2px solid #D8D8D8;

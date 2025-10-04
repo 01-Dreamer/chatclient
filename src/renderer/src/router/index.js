@@ -9,24 +9,41 @@ const routes = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('../views/LoginView.vue')
+    component: () => import('@/views/LoginView.vue')
   },
   {
     path: '/register',
     name: 'register',
-    component: () => import('../views/RegisterView.vue')
+    component: () => import('@/views/RegisterView.vue')
   },
   {
     path: '/main',
     name: 'main',
-    component: () => import('../views/MainView.vue'),
+    component: () => import('@/views/MainView.vue'),
+    redirect: '/main/session/0',
     children: [
       {
-        path: '/chat',
-        name: 'chat',
+        path: 'session/:sessionId',
+        name: 'session',
         components: {
-          layoutLeft: () => import('../views/SessionView.vue'),
-          layoutRight: () => import('../views/ChatView.vue')
+          MainLeft: () => import('@/views/SessionView.vue'),
+          MainRight: () => import('@/views/ChatView.vue')
+        },
+        props: {
+          MainLeft: true,
+          MainRight: true
+        }
+      },
+      {
+        path: 'friend/:friendId',
+        name: 'friend',
+        components: {
+          MainLeft: () => import('@/views/FriendView.vue'),
+          MainRight: () => import('@/views/DetailView.vue')
+        },
+        props: {
+          MainLeft: true,
+          MainRight: true
         }
       }
     ]

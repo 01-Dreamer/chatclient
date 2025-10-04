@@ -6,7 +6,7 @@
           <div class="user-avatar">
             <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
           </div>
-          <el-menu-item class="no-drag" index="chat" @click="changeMenu('chat')">
+          <el-menu-item class="no-drag" index="chat" @click="changeMenu('session')">
             <el-icon class="menu-icon">
               <ChatDotRound />
             </el-icon>
@@ -41,10 +41,10 @@
           </el-icon>
         </div>
       </div>
-      <router-view name="layoutLeft" />
+      <router-view name="MainLeft" />
     </template>
     <template #right-content>
-      <router-view name="layoutRight" />
+      <router-view name="MainRight" />
     </template>
   </Layout>
 </template>
@@ -56,14 +56,14 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 const changeMenu = (clickMenu) => {
   switch (clickMenu) {
-    case 'chat':
-      router.push('/chat')
+    case 'session':
+      router.push('/main/session/0')
       break
     case 'friend':
-      router.push('/friend')
+      router.push('/main/friend/0')
       break
     case 'set':
-      router.push('/set')
+      router.push('/main/set')
       break
     default:
       console.log('changeMenu error')

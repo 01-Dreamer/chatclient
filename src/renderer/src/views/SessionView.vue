@@ -1,53 +1,187 @@
 <template>
-  <div class="session-item no-drag">
-    <el-badge :max="99" :value="9" class="session-avatar">
-      <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
-    </el-badge>
-    <div class="session-info">
-      <div class="session-info-top">
-        <div class="session-name">
-          会话名称
-          <el-icon class="group-icon" v-show="isGroup">
-            <ChatDotSquare />
-          </el-icon>
+  <div class="session-window">
+    <div v-for="session in sessions" :key="session.id" class="session-item no-drag" @click="changeSession(session.id)"
+      :style="{ background: session.id === currentSessionId ? '#D8D8D8' : '' }">
+      <el-badge :max="99" :value="session.unreadCount" class="session-avatar">
+        <img class="avatar-img" :src="session.avatar" alt="error">
+      </el-badge>
+      <div class="session-info">
+        <div class="session-info-top">
+          <div class="session-name">
+            <span>{{ session.name }}</span>
+            <el-icon class="group-icon" v-show="session.isGroup">
+              <ChatDotSquare />
+            </el-icon>
+          </div>
+          <div class="session-latest-time">
+            <span>{{ session.latestTime }}</span>
+          </div>
         </div>
-        <div class="session-latest-time">
-          7/24
+        <div class="session-info-bottom">
+          <span>{{ session.latestMessage }}</span>
         </div>
-      </div>
-      <div class="session-info-bottom">
-        最近消息
-      </div>
-    </div>
-  </div>
-
-  <div class="session-item no-drag">
-    <el-badge :max="99" :value="2" class="session-avatar">
-      <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
-    </el-badge>
-    <div class="session-info">
-      <div class="session-info-top">
-        <div class="session-name">
-          会话名称
-        </div>
-        <div class="session-latest-time">
-          7/24
-        </div>
-      </div>
-      <div class="session-info-bottom">
-        最近消息
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-const isGroup = ref(true)
+import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+const currentSessionId = ref(0)
 
+const props = defineProps({ sessionId: String })
+watch(() => props.sessionId, (id) => {
+  if (!id) return
+  currentSessionId.value = Number(id)
+}, { immediate: true })
+
+
+import Avatar from '@/assets/avatar.jpg'
+const sessions = ref([
+  {
+    id: 1,
+    name: '会话1',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息1',
+    unreadCount: 9,
+    avatar: Avatar
+  },
+  {
+    id: 2,
+    name: '会话2',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息2',
+    unreadCount: 17,
+    avatar: Avatar
+  },
+  {
+    id: 3,
+    name: '会话1',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息1',
+    unreadCount: 9,
+    avatar: Avatar
+  },
+  {
+    id: 4,
+    name: '会话2',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息2',
+    unreadCount: 17,
+    avatar: Avatar
+  },
+  {
+    id: 1,
+    name: '会话1',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息1',
+    unreadCount: 9,
+    avatar: Avatar
+  },
+  {
+    id: 2,
+    name: '会话2',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息2',
+    unreadCount: 17,
+    avatar: Avatar
+  },
+  {
+    id: 3,
+    name: '会话1',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息1',
+    unreadCount: 9,
+    avatar: Avatar
+  },
+  {
+    id: 4,
+    name: '会话2',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息2',
+    unreadCount: 17,
+    avatar: Avatar
+  },
+  {
+    id: 1,
+    name: '会话1',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息1',
+    unreadCount: 9,
+    avatar: Avatar
+  },
+  {
+    id: 2,
+    name: '会话2',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息2',
+    unreadCount: 17,
+    avatar: Avatar
+  },
+  {
+    id: 3,
+    name: '会话1',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息1',
+    unreadCount: 9,
+    avatar: Avatar
+  },
+  {
+    id: 4,
+    name: '会话99',
+    isGroup: true,
+    latestTime: '7/24',
+    latestMessage: '最近消息2',
+    unreadCount: 17,
+    avatar: Avatar
+  }
+])
+
+const router = useRouter()
+const changeSession = (id) => {
+  if (!id) return
+  if (String(id) === String(currentSessionId.value)) return
+  currentSessionId.value = id
+  router.push(`/main/session/${id}`)
+}
 </script>
 
 <style scoped>
+.session-window {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.session-window::-webkit-scrollbar {
+  width: 6px;
+}
+
+.session-window::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.session-window::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 10px;
+  transition: background-color 0.3s;
+}
+
+.session-window:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
 .session-item {
   display: flex;
   justify-content: center;

@@ -1,7 +1,8 @@
 <template>
-  <div class="session-info">
-    <div>
-      会话名称
+  <Blank v-show="currentSessionId === 0"></Blank>
+  <div class="session-info" v-show="currentSessionId !== 0">
+    <div class="session-name">
+      <span>{{ sessionName }}</span>
       <el-icon class="group-icon" v-show="isGroup">
         <ChatDotSquare />
       </el-icon>
@@ -10,7 +11,7 @@
       <MoreFilled />
     </el-icon>
   </div>
-  <div class="chat-window no-drag">
+  <div class="chat-window no-drag" v-show="currentSessionId !== 0">
     <div class="message-list">
       <template v-for="message in messages" :key="message.id">
         <div v-if="message.time" class="message-time">
@@ -26,13 +27,16 @@
       </template>
     </div>
   </div>
-  <div class="input-area no-drag">
+  <div class="input-area no-drag" v-show="currentSessionId !== 0">
     <div class="input-toolbar">
       <el-icon class="toolbar-icon" title="发送文件" @click="sendFile">
         <FolderOpened />
       </el-icon>
       <el-icon class="toolbar-icon" title="截图" @click="takeScreenshot">
         <Scissor />
+      </el-icon>
+      <el-icon class="toolbar-icon" title="转账" @click="showHistory">
+        <Money />
       </el-icon>
       <el-icon class="toolbar-icon" title="聊天记录" @click="showHistory">
         <ChatLineSquare />
@@ -44,9 +48,19 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import Blank from '@/components/BlankView.vue'
+import { ref, watch } from 'vue'
+
+const currentSessionId = ref(0)
+const sessionName = ref('会话名称')
 const isGroup = ref(true)
 const inputText = ref('')
+
+const props = defineProps({ sessionId: String })
+watch(() => props.sessionId, (id) => {
+  if (!id) return
+  currentSessionId.value = Number(id)
+}, { immediate: true })
 
 import Avatar from '@/assets/avatar.jpg'
 const messages = ref([
@@ -67,7 +81,7 @@ const messages = ref([
     sender: true
   },
   {
-    id: 1,
+    id: 3,
     time: null,
     nickname: '测试消息',
     text: '测试消息',
@@ -75,7 +89,7 @@ const messages = ref([
     sender: false
   },
   {
-    id: 2,
+    id: 4,
     time: '2025-10-3 20:38',
     nickname: '测试消息',
     text: '测试消息',
@@ -95,6 +109,11 @@ const messages = ref([
   border-bottom: 1px solid #CCCCCC;
 }
 
+.session-name {
+  font-size: 17px;
+  margin-left: 15px;
+}
+
 .group-icon {
   color: #64B5F6;
 }
@@ -103,7 +122,7 @@ const messages = ref([
   color: var(--wechat-text-secondary);
   cursor: pointer;
   padding: 5px;
-  margin: 5px;
+  margin: 5px 15px 5px 0;
 }
 
 .more-icon:hover {
