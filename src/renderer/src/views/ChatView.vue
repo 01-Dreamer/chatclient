@@ -1,7 +1,7 @@
 <template>
-  <Blank v-show="currentSessionId === 0"></Blank>
+  <Blank v-show="currentSessionId === 0" />
   <div class="session-info" v-show="currentSessionId !== 0">
-    <div class="session-name">
+    <div class="session-name no-drag">
       <span>{{ sessionName }}</span>
       <el-icon class="group-icon" v-show="isGroup">
         <ChatDotSquare />
@@ -21,7 +21,30 @@
           <img :src="message.avatar" alt="error" class="avatar-img">
           <div class="message-content">
             <div class="nickname" v-if="!message.sender">{{ message.nickname }}</div>
-            <div class="message-bubble">{{ message.text }}</div>
+            <div class="text-msg" v-if="message.type === 'text'">{{ message.msg }}</div>
+            <div class="file-msg" v-else-if="message.type === 'file'">
+              <el-icon :size="30">
+                <Document />
+              </el-icon>
+              <span class="file-name">{{ message.msg }}</span>
+            </div>
+            <div class="img-msg" v-else-if="message.type === 'img'">
+              <img :src="message.msg" alt="error" class="image-content">
+            </div>
+            <div
+              :class="['money-msg', { 'negative-money': message.msg.startsWith('-') }]"
+              v-else-if="message.type === 'money'"
+            >
+              <el-icon :size="28" color="#FFF">
+                <Money />
+              </el-icon>
+              <div class="money-details">
+                <span class="money-amount">
+                  ¥ {{ message.msg.startsWith('-') ? message.msg.substring(1) : message.msg }}
+                </span>
+                <span class="money-text">红包</span>
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -35,7 +58,7 @@
       <el-icon class="toolbar-icon" title="截图" @click="takeScreenshot">
         <Scissor />
       </el-icon>
-      <el-icon class="toolbar-icon" title="转账" @click="showHistory">
+      <el-icon class="toolbar-icon" title="红包" @click="showHistory">
         <Money />
       </el-icon>
       <el-icon class="toolbar-icon" title="聊天记录" @click="showHistory">
@@ -50,6 +73,8 @@
 <script setup>
 import Blank from '@/components/BlankView.vue'
 import { ref, watch } from 'vue'
+import { Document, Money, FolderOpened, Scissor, ChatLineSquare, MoreFilled, ChatDotSquare } from '@element-plus/icons-vue'
+
 
 const currentSessionId = ref(0)
 const sessionName = ref('会话名称')
@@ -67,34 +92,47 @@ const messages = ref([
   {
     id: 1,
     time: '2025-10-3 20:38',
-    nickname: '测试消息',
-    text: '测试消息',
+    nickname: '用户1',
+    type: 'text',
+    msg: '测试消息',
     avatar: Avatar,
     sender: false
   },
   {
     id: 2,
     time: null,
-    nickname: '测试消息',
-    text: '测试消息',
-    avatar: Avatar,
-    sender: true
-  },
-  {
-    id: 3,
-    time: null,
-    nickname: '测试消息',
-    text: '测试消息',
+    nickname: '用户2',
+    type: 'file',
+    msg: '测试文件',
     avatar: Avatar,
     sender: false
   },
   {
-    id: 4,
-    time: '2025-10-3 20:38',
-    nickname: '测试消息',
-    text: '测试消息',
+    id: 3,
+    time: null,
+    nickname: '用户3',
+    type: 'img',
+    msg: Avatar,
     avatar: Avatar,
     sender: true
+  },
+  {
+    id: 4,
+    time: '2025-10-3 20:54',
+    nickname: '用户4',
+    type: 'money',
+    msg: '12.00',
+    avatar: Avatar,
+    sender: false
+  },
+  {
+    id: 5,
+    time: null,
+    nickname: '用户5',
+    type: 'money',
+    msg: '-8.88',
+    avatar: Avatar,
+    sender: false
   }
 ])
 </script>
@@ -190,14 +228,6 @@ const messages = ref([
   margin-bottom: 5px;
 }
 
-.message-bubble {
-  background-color: #FFFFFF;
-  border: 1px solid #EAEAEA;
-  padding: 4px;
-  border-radius: 8px;
-  font-size: 15px;
-}
-
 .message-body.self-message {
   align-self: flex-end;
   flex-direction: row-reverse;
@@ -208,9 +238,94 @@ const messages = ref([
   margin-left: 10px;
 }
 
-.self-message .message-bubble {
+.text-msg {
+  background-color: #FFFFFF;
+  border: 1px solid #EAEAEA;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  word-break: break-all;
+}
+
+.self-message .text-msg {
   background-color: #95EC69;
   border-color: #84D65E;
+}
+
+.img-msg {
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #f0f0f0;
+}
+
+.image-content {
+  display: block;
+  max-width: 220px;
+  max-height: 220px;
+  cursor: pointer;
+}
+
+.file-msg {
+  display: flex;
+  align-items: center;
+  background-color: #FFFFFF;
+  border: 1px solid #EAEAEA;
+  padding: 10px;
+  border-radius: 8px;
+  width: 180px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.file-msg:hover {
+  background-color: #F5F5F5;
+}
+
+.file-name {
+  margin-left: 10px;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.money-msg {
+  display: flex;
+  align-items: center;
+  background-color: #fa9d3b;
+  color: white;
+  padding: 10px;
+  border-radius: 8px;
+  width: 180px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.money-msg:hover {
+  background-color: #f88e1e;
+}
+
+.money-msg.negative-money {
+  background-color: #E57373;
+}
+
+.money-msg.negative-money:hover {
+  background-color: #EF5350;
+}
+
+.money-details {
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.money-amount {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.money-text {
+  font-size: 12px;
 }
 
 .input-area {

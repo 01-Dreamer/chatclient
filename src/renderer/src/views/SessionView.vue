@@ -36,7 +36,6 @@ watch(() => props.sessionId, (id) => {
   currentSessionId.value = Number(id)
 }, { immediate: true })
 
-
 import Avatar from '@/assets/avatar.jpg'
 const sessions = ref([
   {
@@ -59,7 +58,7 @@ const sessions = ref([
   },
   {
     id: 3,
-    name: '会话1',
+    name: '会话3',
     isGroup: true,
     latestTime: '7/24',
     latestMessage: '最近消息1',
@@ -68,79 +67,7 @@ const sessions = ref([
   },
   {
     id: 4,
-    name: '会话2',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息2',
-    unreadCount: 17,
-    avatar: Avatar
-  },
-  {
-    id: 1,
-    name: '会话1',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息1',
-    unreadCount: 9,
-    avatar: Avatar
-  },
-  {
-    id: 2,
-    name: '会话2',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息2',
-    unreadCount: 17,
-    avatar: Avatar
-  },
-  {
-    id: 3,
-    name: '会话1',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息1',
-    unreadCount: 9,
-    avatar: Avatar
-  },
-  {
-    id: 4,
-    name: '会话2',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息2',
-    unreadCount: 17,
-    avatar: Avatar
-  },
-  {
-    id: 1,
-    name: '会话1',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息1',
-    unreadCount: 9,
-    avatar: Avatar
-  },
-  {
-    id: 2,
-    name: '会话2',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息2',
-    unreadCount: 17,
-    avatar: Avatar
-  },
-  {
-    id: 3,
-    name: '会话1',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息1',
-    unreadCount: 9,
-    avatar: Avatar
-  },
-  {
-    id: 4,
-    name: '会话99',
+    name: '会话4',
     isGroup: true,
     latestTime: '7/24',
     latestMessage: '最近消息2',
