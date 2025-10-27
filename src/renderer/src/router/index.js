@@ -35,10 +35,10 @@ const routes = [
         }
       },
       {
-        path: 'friend/:friendId',
-        name: 'friend',
+        path: 'contact/:sessionId',
+        name: 'contact',
         components: {
-          MainLeft: () => import('@/views/FriendView.vue'),
+          MainLeft: () => import('@/views/ContactView.vue'),
           MainRight: () => import('@/views/DetailView.vue')
         },
         props: {

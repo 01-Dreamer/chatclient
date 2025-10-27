@@ -1,7 +1,6 @@
 <template>
-  <Blank v-show="currentFrinedId === 0" />
-
-  <div class="friend-profile-container no-drag" v-show="currentFrinedId !== 0">
+  <Blank v-show="currentSessionId === 0" />
+  <div class="friend-profile-container no-drag" v-show="currentSessionId !== 0">
     <div class="profile-content">
       <img src="@/assets/avatar.jpg" alt="avatar" class="avatar-img">
       <div class="friend-name">好友昵称</div>
@@ -31,11 +30,11 @@
 import Blank from '@/components/BlankView.vue'
 import { ref, watch, nextTick } from 'vue'
 
-const currentFrinedId = ref(0)
-const props = defineProps({ friendId: String })
-watch(() => props.friendId, (id) => {
+const currentSessionId = ref(0)
+const props = defineProps({ sessionId: String })
+watch(() => props.sessionId, (id) => {
   if (!id) return
-  currentFrinedId.value = Number(id)
+  currentSessionId.value = Number(id)
 }, { immediate: true })
 
 

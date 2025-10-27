@@ -11,7 +11,7 @@
               <ChatDotRound />
             </el-icon>
           </el-menu-item>
-          <el-menu-item class="no-drag" index="user" @click="changeMenu('friend')">
+          <el-menu-item class="no-drag" index="user" @click="changeMenu('contact')">
             <el-icon class="menu-icon">
               <User />
             </el-icon>
@@ -59,8 +59,8 @@ const changeMenu = (clickMenu) => {
     case 'session':
       router.push('/main/session/0')
       break
-    case 'friend':
-      router.push('/main/friend/0')
+    case 'contact':
+      router.push('/main/contact/0')
       break
     case 'set':
       router.push('/main/set')

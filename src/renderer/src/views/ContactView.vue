@@ -8,12 +8,11 @@
     </div>
     <div v-show="isGroupListExpanded">
       <div v-for="group in groups" :key="group.id" class="list-item" @click="changeInfo(group.id)"
-        :class="{ 'active-item': group.id === currentFrinedId }">
+        :class="{ 'active-item': group.id === currentSessionId }">
         <img class="avatar-img" :src="group.avatar" alt="avatar">
         <span class="item-name">{{ group.name }}</span>
       </div>
     </div>
-
     <div class="list-category" @click="isFriendListExpanded = !isFriendListExpanded">
       <el-icon class="arrow-icon" :class="{ 'expanded': isFriendListExpanded }">
         <ArrowRight />
@@ -22,7 +21,7 @@
     </div>
     <div v-show="isFriendListExpanded">
       <div v-for="friend in friends" :key="friend.id" class="list-item" @click="changeInfo(friend.id)"
-        :class="{ 'active-item': friend.id === currentFrinedId }">
+        :class="{ 'active-item': friend.id === currentSessionId }">
         <img class="avatar-img" :src="friend.avatar" alt="avatar">
         <span class="item-name">{{ friend.name }}</span>
       </div>
@@ -34,14 +33,14 @@
 import { ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 
-const currentFrinedId = ref(0)
+const currentSessionId = ref(0)
 const isGroupListExpanded = ref(false)
 const isFriendListExpanded = ref(false)
 
-const props = defineProps({ friendId: String })
-watch(() => props.friendId, (id) => {
+const props = defineProps({ sessionId: String })
+watch(() => props.sessionId, (id) => {
   if (!id) return
-  currentFrinedId.value = Number(id)
+  currentSessionId.value = Number(id)
 }, { immediate: true })
 
 
@@ -63,9 +62,8 @@ const groups = ref([
 
 const router = useRouter()
 const changeInfo = (id) => {
-  if (!id) return
-  if (!id || String(id) === String(currentFrinedId.value)) return
-  router.push(`/main/friend/${id}`)
+  if (!id || String(id) === String(currentSessionId.value)) return
+  router.push(`/main/contact/${id}`)
 }
 </script>
 
