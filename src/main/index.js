@@ -8,7 +8,7 @@ import { connectWebSocket } from './websocket'
 
 // 窗口尺寸信息
 const loginViewWidth = 300
-const loginViewHeight = 320
+const loginViewHeight = 270
 const registerViewWidth = 300
 const registerViewHeight = 380
 const mainViewWidth = 750
@@ -135,7 +135,6 @@ app.whenReady().then(() => {
     store.userId = user.userId
     initDatabase()
     connectWebSocket()
-    console.log(user)
   })
 
 

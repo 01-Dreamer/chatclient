@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import WebSocket from 'ws'
 import store from './store'
 

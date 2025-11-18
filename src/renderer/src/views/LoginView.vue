@@ -53,7 +53,7 @@ import $ from 'jquery'
 const formData = ref({})
 const isDisableLogin = computed(() => {
   return !formData.value.username ||
-         !formData.value.password
+    !formData.value.password
 })
 
 // 退出
@@ -67,37 +67,79 @@ const loading = ref(false)
 const login = () => {
   loading.value = true
 
-  console.log(formData)
-  const url = store.getHttpUrl + '/login'
-  $.post(url, formData.value, (data) => {
-    console.log(formData.value)
-    if (data.code !== 200) {
-      ElMessage({
-        type: 'warning',
-        message: '用户名或密码错误',
-        duration: 5000
-      })
-      loading.value = false
-      return
-    }
-
-    console.log(data)
+  const username = formData.value.username
+  const password = formData.value.password
+  const regex = /^[a-zA-Z0-9]+$/
+  if (
+    !username || username.length < 4 || username.length > 20 || !regex.test(username) ||
+    !password || password.length < 10 || password.length > 30 || !regex.test(password)
+  ) {
     ElMessage({
+      type: 'warning',
+      message: '登陆失败',
+      duration: 2000,
+      grouping: true
+    })
+
+    loading.value = false
+    return
+  }
+
+  const url = store.getHttpUrl + '/login'
+  $.ajax({
+    url: url,
+    type: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({
+      username: username,
+      password: password
+    }),
+    success: (data) => {
+      if (data.userId === -1) {
+        ElMessage({
+          type: 'warning',
+          message: '登陆失败',
+          duration: 2000,
+          grouping: true
+        })
+        loading.value = false
+        return
+      }
+
+      ElMessage({
         type: 'success',
         message: '登录成功',
-        duration: 5000
+        duration: 2000,
+        grouping: true
       })
 
+      store.setUser({
+        userId: data.userId,
+        username: username,
+        nickname: data.nickname,
+        avatar: data.avatar,
+        token: data.token
+      })
 
-    window.api.login({
-      token: 'eyJhbGciOiJIUzUxMiJ9.eyJqdGkiOiJmZDFkZmExZS1lMTlhLTRjOGYtOGJmNC04ZDAyNmVlNWM4ZGQiLCJzdWIiOiIxIiwiaWF0IjoxNzYzMzY4NjA1LCJleHAiOjE3NjM5NzM0MDV9.QlR60mA8j_VxmSpOKVEm_tkouGwTImW0ZSXP_RsJaw7_yqiFSUrqN7N2of5XwSemfsfg6qwccUDQo9XvBP2p2Q',
-      userId: '1'
-    })
-    window.api.changeWindow('main')
-    router.push('/main')
-    loading.value = false
+      window.api.login({
+        token: data.token,
+        userId: data.userId,
+      })
+      window.api.changeWindow('main')
+      router.push('/main')
+    },
+    error: (error) => {
+      ElMessage({
+        type: 'warning',
+        message: '登陆失败',
+        duration: 2000,
+        grouping: true
+      })
+    }
   })
+  loading.value = false
 }
+
 
 // 去注册
 const router = useRouter()
