@@ -1,12 +1,11 @@
 import { app, shell, BrowserWindow, screen, ipcMain } from 'electron'
-import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { join } from 'path'
+import { initDatabase } from './db'
+import store from './store'
+import { connectWebSocket } from './websocket'
 
-// 本地数据库相关
-const root_path = './'
-const Database = require('better-sqlite3')
-const db = new Database(root_path + 'chat.db')
 // 窗口尺寸信息
 const loginViewWidth = 300
 const loginViewHeight = 320
@@ -55,46 +54,6 @@ function createWindow() {
   }
 }
 
-function initDatabase() {
-  // 会话数据库
-  // type: 0 单聊 1 群聊
-  // show: 0 不展示
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS session (
-      id INTEGER PRIMARY KEY,
-      type INTEGER NOT NULL,
-      avatar TEXT NOT NULL,
-      remark TEXT,
-      show INTEGER DEFAULT 0
-    )
-  `)
-
-  // 会话成员数据库
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS session_member (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      sessionId INTEGER NOT NULL,
-      memberId INTEGER NOT NULL,
-      FOREIGN KEY (sessionId) REFERENCES session(id) ON DELETE CASCADE,
-      UNIQUE(sessionId, memberId)
-    )
-  `)
-
-  // 聊天信息数据库
-  // type: 0 文本 1 图片 2 文件 3 红包
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS message (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    type INTEGER NOT NULL,
-    sessionId INTEGER NOT NULL,
-    senderId INTEGER NOT NULL,
-    sendTime TEXT NOT NULL,
-    content TEXT NOT NULL,
-    FOREIGN KEY (sessionId) REFERENCES session(id) ON DELETE CASCADE
-    )
-  `)
-}
-
 // 窗口居中
 function centerWindow(win, width, height) {
   const currentDisplay = screen.getDisplayNearestPoint(win?.getBounds())
@@ -112,7 +71,6 @@ app.whenReady().then(() => {
   })
 
   createWindow()
-  initDatabase()
 
   ///////////////////////////////////////////////
   // ipc注册
@@ -171,6 +129,14 @@ app.whenReady().then(() => {
     app.quit()
   })
 
+  // 登录
+  ipcMain.on('login', (e, user) => {
+    store.token = user.token
+    store.userId = user.userId
+    initDatabase()
+    connectWebSocket()
+    console.log(user)
+  })
 
 
   ///////////////////////////////////////////////

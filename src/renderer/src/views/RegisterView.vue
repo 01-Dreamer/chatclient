@@ -6,6 +6,15 @@
     </div>
     <div class="register-form">
       <el-form :model="formData" @submit.prevent>
+        <el-form-item prop="nickname">
+          <el-input size="large" v-model="formData.nickname" placeholder="请输入昵称">
+            <template #prefix>
+              <el-icon>
+                <Postcard />
+              </el-icon>
+            </template>
+          </el-input>
+        </el-form-item>
         <el-form-item prop="email">
           <el-input size="large" v-model="formData.email" clearable placeholder="请输入邮箱">
             <template #prefix>
