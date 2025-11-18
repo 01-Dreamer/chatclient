@@ -139,7 +139,7 @@ const register = () => {
       if (data.userId === -1) {
         ElMessage({
           type: 'warning',
-          message: '注册失败',
+          message: '注册失败,用户名已存在',
           duration: 2000,
           grouping: true
         })
@@ -157,8 +157,8 @@ const register = () => {
     },
     error: (error) => {
       ElMessage({
-        type: 'warning',
-        message: '注册失败',
+        type: 'error',
+        message: '无法连接服务器',
         duration: 2000,
         grouping: true
       })

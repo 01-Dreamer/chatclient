@@ -76,7 +76,7 @@ const login = () => {
   ) {
     ElMessage({
       type: 'warning',
-      message: '登陆失败',
+      message: '登陆失败,用户名或密码错误',
       duration: 2000,
       grouping: true
     })
@@ -98,7 +98,7 @@ const login = () => {
       if (data.userId === -1) {
         ElMessage({
           type: 'warning',
-          message: '登陆失败',
+          message: '登陆失败,用户名或密码错误',
           duration: 2000,
           grouping: true
         })
@@ -130,8 +130,8 @@ const login = () => {
     },
     error: (error) => {
       ElMessage({
-        type: 'warning',
-        message: '登陆失败',
+        type: 'error',
+        message: '无法连接服务器',
         duration: 2000,
         grouping: true
       })
