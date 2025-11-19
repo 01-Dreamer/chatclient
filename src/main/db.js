@@ -27,12 +27,12 @@ export function initDatabase() {
     // 会话成员数据库
     db.exec(`
     CREATE TABLE IF NOT EXISTS session_member (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id INTEGER PRIMARY KEY,
       sessionId INTEGER NOT NULL,
-      memberId INTEGER NOT NULL,
+      userId INTEGER NOT NULL,
       remark TEXT,
       FOREIGN KEY (sessionId) REFERENCES session(id) ON DELETE CASCADE,
-      UNIQUE(sessionId, memberId)
+      UNIQUE(sessionId, userId)
     )
   `)
 
@@ -40,7 +40,7 @@ export function initDatabase() {
     // type: text 文本 image 图片 file 文件 red_packet 红包
     db.exec(`
     CREATE TABLE IF NOT EXISTS message (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER PRIMARY KEY,
     sessionId INTEGER NOT NULL,
     senderId INTEGER NOT NULL,
     sendTime TEXT NOT NULL,

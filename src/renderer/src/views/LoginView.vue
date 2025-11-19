@@ -106,6 +106,13 @@ const login = () => {
         return
       }
 
+      window.api.login({
+        token: data.token,
+        userId: data.userId,
+      })
+      router.push('/main')
+      window.api.changeWindow('main')
+
       ElMessage({
         type: 'success',
         message: '登录成功',
@@ -120,13 +127,6 @@ const login = () => {
         avatar: data.avatar,
         token: data.token
       })
-
-      window.api.login({
-        token: data.token,
-        userId: data.userId,
-      })
-      window.api.changeWindow('main')
-      router.push('/main')
     },
     error: (error) => {
       ElMessage({
