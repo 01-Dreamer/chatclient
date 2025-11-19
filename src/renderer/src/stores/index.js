@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useUserStore = defineStore('user', {
   state: () => ({
-    httpUrl: 'http://localhost:10001',
+    httpUrl: 'https://data.zxylearn.top',
     userId: null,
     username: null,
     nickname: null,
@@ -19,7 +19,6 @@ export const useUserStore = defineStore('user', {
       this.token = user.token
     }
   },
-
 
   getters: {
     getHttpUrl: (state) => state.httpUrl

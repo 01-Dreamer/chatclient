@@ -123,7 +123,7 @@ const register = () => {
     return
   }
 
-  const url = store.getHttpUrl + '/register'
+  const url = store.getHttpUrl + '/auth/register'
   console.log(url)
   $.ajax({
     url: url,

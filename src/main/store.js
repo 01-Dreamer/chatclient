@@ -3,7 +3,7 @@ class Store {
     this.userId = null
     this.token = null
     this.httpUrl = null
-    this.wsUrl = 'ws://localhost:10002/chat'
+    this.wsUrl = 'wss://data.zxylearn.top/chat'
   }
 }
 
