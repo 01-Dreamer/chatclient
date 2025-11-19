@@ -85,7 +85,7 @@ const login = () => {
     return
   }
 
-  const url = store.getHttpUrl + '/login'
+  const url = store.getHttpUrl + '/auth/login'
   $.ajax({
     url: url,
     type: 'POST',

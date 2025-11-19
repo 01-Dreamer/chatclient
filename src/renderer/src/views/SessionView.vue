@@ -61,7 +61,7 @@ const sessions = ref([
     name: '会话3',
     isGroup: true,
     latestTime: '7/24',
-    latestMessage: '最近消息1',
+    latestMessage: '最近消息3',
     unreadCount: 9,
     avatar: Avatar
   },
@@ -70,7 +70,7 @@ const sessions = ref([
     name: '会话4',
     isGroup: true,
     latestTime: '7/24',
-    latestMessage: '最近消息2',
+    latestMessage: '最近消息4',
     unreadCount: 17,
     avatar: Avatar
   }

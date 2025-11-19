@@ -16,9 +16,14 @@
               <User />
             </el-icon>
           </el-menu-item>
+          <el-menu-item class="no-drag" @click="showNotification()">
+            <el-icon class="menu-icon">
+              <Bell />
+            </el-icon>
+          </el-menu-item>
         </div>
-        <div class="bottom-menu">
-          <el-menu-item class="no-drag" index="set">
+        <div class="bottom-menu" @click="showSet()">
+          <el-menu-item class="no-drag">
             <el-icon class="menu-icon">
               <Setting />
             </el-icon>
@@ -47,12 +52,24 @@
       <router-view name="MainRight" />
     </template>
   </Layout>
+
+  <el-drawer
+    v-model="notifyVisible"
+    direction="rtl"
+    size="300px"
+    :with-header="false"
+    class="no-drag">
+    <Notify />
+  </el-drawer>
 </template>
 
 <script setup>
+import { ref } from 'vue'
 import Layout from '@/components/LayoutBase.vue'
+import Notify from  '@/views/NotifyView.vue'
 import { useRouter } from 'vue-router'
 
+// 切换菜单
 const router = useRouter()
 const changeMenu = (clickMenu) => {
   switch (clickMenu) {
@@ -62,12 +79,20 @@ const changeMenu = (clickMenu) => {
     case 'contact':
       router.push('/main/contact/0')
       break
-    case 'set':
-      router.push('/main/set')
-      break
     default:
       console.log('changeMenu error')
   }
+}
+
+// 显示通知
+const notifyVisible = ref(false)
+const showNotification = () => {
+  notifyVisible.value = true
+}
+
+// 显示设置
+const showSet = () => {
+
 }
 
 </script>
