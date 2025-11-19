@@ -52,21 +52,19 @@
       <router-view name="MainRight" />
     </template>
   </Layout>
-
-  <el-drawer
-    v-model="notifyVisible"
-    direction="rtl"
-    size="300px"
-    :with-header="false"
-    class="no-drag">
+  <el-drawer v-model="notifyVisible" direction="rtl" size="500px" :with-header="true" title="通知" class="no-drag" destroy-on-close>
     <Notify />
+  </el-drawer>
+  <el-drawer v-model="setVisible" direction="rtl" size="500px" :with-header="true" title="设置" class="no-drag" destroy-on-close>
+    <Set />
   </el-drawer>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import Layout from '@/components/LayoutBase.vue'
-import Notify from  '@/views/NotifyView.vue'
+import Notify from '@/views/NotifyView.vue'
+import Set from '@/views/SetView.vue'
 import { useRouter } from 'vue-router'
 
 // 切换菜单
@@ -91,8 +89,9 @@ const showNotification = () => {
 }
 
 // 显示设置
+const setVisible = ref(false)
 const showSet = () => {
-
+  setVisible.value = true
 }
 
 </script>
