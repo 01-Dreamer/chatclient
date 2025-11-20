@@ -30,16 +30,12 @@ const api = {
     return ipcRenderer.invoke('getSessionList')
   },
 
-
-
-  onMessage: (callback) => {
-    ipcRenderer.removeAllListeners('message')
-    ipcRenderer.on('message', (event, message) => {
+  onSession: (callback) => {
+    ipcRenderer.removeAllListeners('session')
+    ipcRenderer.on('session', (event, message) => {
       callback(message)
     })
   }
-
-
 }
 
 if (process.contextIsolated) {

@@ -52,10 +52,12 @@
       <router-view name="MainRight" />
     </template>
   </Layout>
-  <el-drawer v-model="notifyVisible" direction="rtl" size="500px" :with-header="true" title="通知" class="no-drag" destroy-on-close>
+  <el-drawer v-model="notifyVisible" direction="rtl" size="500px" :with-header="true" title="通知" class="no-drag"
+    destroy-on-close>
     <Notify />
   </el-drawer>
-  <el-drawer v-model="setVisible" direction="rtl" size="500px" :with-header="true" title="设置" class="no-drag" destroy-on-close>
+  <el-drawer v-model="setVisible" direction="rtl" size="500px" :with-header="true" title="设置" class="no-drag"
+    destroy-on-close>
     <Set />
   </el-drawer>
 </template>
@@ -66,6 +68,30 @@ import Layout from '@/components/LayoutBase.vue'
 import Notify from '@/views/NotifyView.vue'
 import Set from '@/views/SetView.vue'
 import { useRouter } from 'vue-router'
+import { useStore } from '@/stores/index'
+
+const store = useStore()
+const updateSessions = async () => {
+  const sessionList = await window.api.getSessionList()
+  store.sessions = []
+  for (const session of sessionList) {
+    store.sessions.push({
+      id: session.id,
+      name: session.name,
+      isGroup: session.is_group === 1,
+      latestTime: "7/24",
+      latestMessage: "测试消息",
+      unreadCount: session.unread_count,
+      avatar: session.avatar
+    })
+  }
+}
+
+// 监听主进程的Session变化
+window.api.onSession((message) => {
+  message;
+  updateSessions()
+})
 
 // 切换菜单
 const router = useRouter()

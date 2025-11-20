@@ -45,7 +45,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/index'
+import { useStore } from '@/stores/index'
 import { ElMessage } from 'element-plus'
 import $ from 'jquery'
 
@@ -62,7 +62,7 @@ const exitApp = () => {
 }
 
 // 登录
-const store = useUserStore()
+const store = useStore()
 const loading = ref(false)
 const login = () => {
   loading.value = true
