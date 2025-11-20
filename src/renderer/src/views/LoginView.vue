@@ -129,6 +129,7 @@ const login = () => {
       })
     },
     error: (error) => {
+      error;
       ElMessage({
         type: 'error',
         message: '无法连接服务器',

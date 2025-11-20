@@ -36,45 +36,23 @@ watch(() => props.sessionId, (id) => {
   currentSessionId.value = Number(id)
 }, { immediate: true })
 
-import Avatar from '@/assets/avatar.jpg'
-const sessions = ref([
-  {
-    id: 1,
-    name: '会话1',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息1',
-    unreadCount: 9,
-    avatar: Avatar
-  },
-  {
-    id: 2,
-    name: '会话2',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息2',
-    unreadCount: 17,
-    avatar: Avatar
-  },
-  {
-    id: 3,
-    name: '会话3',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息3',
-    unreadCount: 9,
-    avatar: Avatar
-  },
-  {
-    id: 4,
-    name: '会话4',
-    isGroup: true,
-    latestTime: '7/24',
-    latestMessage: '最近消息4',
-    unreadCount: 17,
-    avatar: Avatar
-  }
-])
+
+// import Avatar from '@/assets/avatar.jpg'
+const sessions = ref([])
+// onMounted(async () => {
+//   const sessionList = await window.api.getSessionList()
+//   for (const session of sessionList) {
+//     sessions.value.push({
+//       id: session.id,
+//       name: session.name,
+//       isGroup: session.is_group === 1,
+//       latestTime: "7/24",
+//       latestMessage: "测试消息",
+//       unreadCount: 12,
+//       avatar: Avatar
+//     })
+//   }
+// })
 
 const router = useRouter()
 const changeSession = (id) => {

@@ -62,18 +62,17 @@ import { useUserStore } from '@/stores/index'
 
 const store = useUserStore()
 
-import Avatar from '@/assets/avatar.jpg'
 const user = ref({
   id: store.userId,
   nickname: store.nickname,
-  avatar: Avatar,
+  avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/avatar.jpg',
   balance: '2,580.00'
 });
 
 const isEditing = ref(false);
 const nameInputRef = ref(null);
-
 const startEdit = () => {
+  ElMessage.warning('暂时不支持修改昵称');
   isEditing.value = true;
   nextTick(() => {
     nameInputRef.value?.focus();
@@ -85,10 +84,7 @@ const handleSaveName = () => {
     ElMessage.warning('昵称不能为空');
     return;
   }
-  
   isEditing.value = false;
-  console.log('修改后的昵称:', user.value.nickname);
-  ElMessage.success('昵称修改成功');
 };
 
 const handleLogout = () => {
