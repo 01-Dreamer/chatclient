@@ -4,7 +4,7 @@ import icon from '../../resources/icon.png?asset'
 import { join } from 'path'
 import * as db from './db'
 import store from './store'
-import { connectWebSocket } from './websocket'
+import { connectWebSocket, sendMessageByWs } from './websocket'
 
 // 窗口尺寸信息
 const loginViewWidth = 300
@@ -25,9 +25,16 @@ let lastPositionY = 0;
 let mainWindow = null;
 
 // 通知渲染进程改变session
-export function changeSession() {
+export function changeSession(sessionId) {
   if (mainWindow && mainWindow.webContents) {
-    mainWindow.webContents.send('session', 'change session')
+    mainWindow.webContents.send('session', sessionId)
+  }
+}
+
+// 通知渲染进程有新消息
+export function sendMessage(message) {
+  if (mainWindow && mainWindow.webContents) {
+    mainWindow.webContents.send('message', message)
   }
 }
 
@@ -81,6 +88,7 @@ app.whenReady().then(() => {
   })
 
   createWindow() // 创建窗口
+  
 
   ///////////////////////////////////////////////
   // ipc注册
@@ -151,6 +159,27 @@ app.whenReady().then(() => {
   ipcMain.handle('getSessionList', () => {
     return db.getSessionList()
   })
+
+  // 获取会话消息列表
+  ipcMain.handle('getMessageList', (e, sessionId) => {
+    return db.getMessageList(sessionId)
+  })
+
+  // 获取会话最后一条消息
+  ipcMain.handle('getLastMessage', (e, sessionId) => {
+    return db.getLastMessage(sessionId)
+  })
+
+  // 重置会话未读消息数
+  ipcMain.on('resetSessionUnreadCount', (e, sessionId) => {
+    db.resetSessionUnreadCount(sessionId)
+  })
+
+  // 发送消息
+  ipcMain.on('sendMessageByWs', (e, message) => {
+    sendMessageByWs(message)
+  })
+
 
 
   ///////////////////////////////////////////////

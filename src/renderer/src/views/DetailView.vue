@@ -1,6 +1,6 @@
 <template>
-  <Blank v-show="currentSessionId === 0" />
-  <div class="friend-profile-container no-drag" v-show="currentSessionId !== 0">
+  <Blank v-show="currentSessionId === -1" />
+  <div class="friend-profile-container no-drag" v-show="currentSessionId !== -1">
     <div class="profile-content">
       <img src="@/assets/avatar.jpg" alt="avatar" class="avatar-img">
       <div class="friend-name">好友昵称</div>

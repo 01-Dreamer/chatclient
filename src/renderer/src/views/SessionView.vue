@@ -2,7 +2,7 @@
   <div class="session-window">
     <div v-for="session in sessions" :key="session.id" class="session-item no-drag" @click="changeSession(session.id)"
       :style="{ background: session.id === currentSessionId ? '#D8D8D8' : '' }">
-      <el-badge :max="99" :value="session.unreadCount" class="session-avatar">
+      <el-badge :max="99" :hidden="!session.unreadCount" :value="session.unreadCount" class="session-avatar">
         <img class="avatar-img" :src="session.avatar" alt="error">
       </el-badge>
       <div class="session-info">
@@ -42,12 +42,14 @@ watch(() => props.sessionId, (id) => {
 const store = useStore()
 const { sessions } = storeToRefs(store)
 
-
 const router = useRouter()
 const changeSession = (id) => {
   if (!id) return
   if (String(id) === String(currentSessionId.value)) return
   currentSessionId.value = id
+  store.currentSessionId = id
+  store.resetSessionUnreadCount(id)
+  window.api.resetSessionUnreadCount(id)
   router.push(`/main/session/${id}`)
 }
 </script>

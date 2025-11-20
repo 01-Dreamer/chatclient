@@ -20,7 +20,7 @@ const routes = [
     path: '/main',
     name: 'main',
     component: () => import('@/views/MainView.vue'),
-    redirect: '/main/session/0',
+    redirect: '/main/session/-1',
     children: [
       {
         path: 'session/:sessionId',

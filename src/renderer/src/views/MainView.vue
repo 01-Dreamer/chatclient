@@ -63,33 +63,106 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import Layout from '@/components/LayoutBase.vue'
 import Notify from '@/views/NotifyView.vue'
 import Set from '@/views/SetView.vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/stores/index'
 
+// 时间戳转换函数
+const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp * 1000)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
 const store = useStore()
 const updateSessions = async () => {
   const sessionList = await window.api.getSessionList()
   store.sessions = []
   for (const session of sessionList) {
+    const lastMessage = await window.api.getLastMessage(session.id)
+    let lastTimeText = ''
+    let lastMessageText = '~暂无消息~'
+    if (lastMessage) {
+      lastTimeText = formatTimestamp(lastMessage.createTime)
+      if (lastMessage.type === 'text') {
+        if (lastMessage.content.length > 12) {
+          lastMessageText = lastMessage.content.substring(0, 12) + '...'
+        } else {
+          lastMessageText = lastMessage.content
+        }
+      } else if (lastMessage.type === 'image') {
+        lastMessageText = '[图片]'
+      } else if (lastMessage.type === 'file') {
+        lastMessageText = '[文件]'
+      } else if (lastMessage.type === 'red_packet') {
+        lastMessageText = '[红包]'
+      } else {
+        lastMessageText = '[未知消息]'
+      }
+    }
     store.sessions.push({
       id: session.id,
       name: session.name,
       isGroup: session.is_group === 1,
-      latestTime: "7/24",
-      latestMessage: "测试消息",
+      latestTime: lastTimeText,
+      latestMessage: lastMessageText,
       unreadCount: session.unread_count,
       avatar: session.avatar
     })
   }
 }
 
+// 更新特定会话的最后一条消息
+const updateSessionById = async (sessionId) => {
+  const session = store.sessions.find(s => s.id === sessionId)
+  if (session) {
+    const lastMessage = await window.api.getLastMessage(sessionId)
+    let lastTimeText = ''
+    let lastMessageText = '~暂无消息~'
+    if (lastMessage) {
+      lastTimeText = formatTimestamp(lastMessage.createTime)
+      if (lastMessage.type === 'text') {
+        if (lastMessage.content.length > 12) {
+          lastMessageText = lastMessage.content.substring(0, 12) + '...'
+        } else {
+          lastMessageText = lastMessage.content
+        }
+      } else if (lastMessage.type === 'image') {
+        lastMessageText = '[图片]'
+      } else if (lastMessage.type === 'file') {
+        lastMessageText = '[文件]'
+      } else if (lastMessage.type === 'red_packet') {
+        lastMessageText = '[红包]'
+      } else {
+        lastMessageText = '[未知消息]'
+      }
+    }
+    session.latestTime = lastTimeText
+    session.latestMessage = lastMessageText
+    if(sessionId !== store.currentSessionId) {
+      session.unreadCount += 1
+    }
+  }
+}
+
 // 监听主进程的Session变化
-window.api.onSession((message) => {
-  message;
+window.api.onSession((sessionId) => {
+  if(sessionId === null) {
+    updateSessions()
+  } else {
+    updateSessionById(sessionId)
+  }
+})
+
+onMounted(() => {
   updateSessions()
 })
 
@@ -98,10 +171,12 @@ const router = useRouter()
 const changeMenu = (clickMenu) => {
   switch (clickMenu) {
     case 'session':
-      router.push('/main/session/0')
+      store.currentSessionId = -1
+      router.push('/main/session/-1')
       break
     case 'contact':
-      router.push('/main/contact/0')
+      store.currentSessionId = -1
+      router.push('/main/contact/-1')
       break
     default:
       console.log('changeMenu error')
