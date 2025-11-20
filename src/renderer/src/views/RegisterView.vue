@@ -64,7 +64,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/index'
+import { useStore } from '@/stores/index'
 import $ from 'jquery'
 
 // 表单
@@ -82,7 +82,7 @@ const exitApp = () => {
 }
 
 // 注册
-const store = useUserStore()
+const store = useStore()
 const loading = ref(false)
 const register = () => {
   const nickname = formData.value.nickname

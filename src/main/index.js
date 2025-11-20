@@ -24,10 +24,10 @@ let lastPositionY = 0;
 // 全局窗口对象
 let mainWindow = null;
 
-// 向渲染进程发送消息
-export function sendMessage() {
+// 通知渲染进程改变session
+export function changeSession() {
   if (mainWindow && mainWindow.webContents) {
-    mainWindow.webContents.send('message', 'hello from main process')
+    mainWindow.webContents.send('session', 'change session')
   }
 }
 
@@ -80,19 +80,7 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  createWindow()
-  setTimeout(() => {
-        sendMessage()
-        console.log("send")
-    }, 10000);
-    setTimeout(() => {
-        sendMessage()
-        console.log("send")
-    }, 20000);
-    setTimeout(() => {
-        sendMessage()
-        console.log("send")
-    }, 30000);
+  createWindow() // 创建窗口
 
   ///////////////////////////////////////////////
   // ipc注册

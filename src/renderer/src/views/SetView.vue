@@ -58,9 +58,9 @@
 import { ref, nextTick } from 'vue'
 import { Wallet, ArrowRight, SwitchButton, EditPen } from '@element-plus/icons-vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
-import { useUserStore } from '@/stores/index'
+import { useStore } from '@/stores/index'
 
-const store = useUserStore()
+const store = useStore()
 
 const user = ref({
   id: store.userId,
