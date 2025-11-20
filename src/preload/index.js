@@ -24,7 +24,21 @@ const api = {
 
   login: (user) => {
     ipcRenderer.send('login', user)
+  },
+
+  getSessionList: () => {
+    return ipcRenderer.invoke('getSessionList')
+  },
+
+
+
+  onMessage: (callback) => {
+    ipcRenderer.removeAllListeners('message')
+    ipcRenderer.on('message', (event, message) => {
+      callback(message)
+    })
   }
+
 
 }
 

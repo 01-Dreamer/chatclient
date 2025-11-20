@@ -2,7 +2,7 @@ import { app, shell, BrowserWindow, screen, ipcMain } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { join } from 'path'
-import { initDatabase } from './db'
+import * as db from './db'
 import store from './store'
 import { connectWebSocket } from './websocket'
 
@@ -21,8 +21,18 @@ let lastMainViewHeight = mainViewHeight;
 let lastPositionX = 0;
 let lastPositionY = 0;
 
+// 全局窗口对象
+let mainWindow = null;
+
+// 向渲染进程发送消息
+export function sendMessage() {
+  if (mainWindow && mainWindow.webContents) {
+    mainWindow.webContents.send('message', 'hello from main process')
+  }
+}
+
 function createWindow() {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: loginViewWidth,
     height: loginViewHeight,
     show: false,
@@ -71,6 +81,18 @@ app.whenReady().then(() => {
   })
 
   createWindow()
+  setTimeout(() => {
+        sendMessage()
+        console.log("send")
+    }, 10000);
+    setTimeout(() => {
+        sendMessage()
+        console.log("send")
+    }, 20000);
+    setTimeout(() => {
+        sendMessage()
+        console.log("send")
+    }, 30000);
 
   ///////////////////////////////////////////////
   // ipc注册
@@ -129,12 +151,17 @@ app.whenReady().then(() => {
     app.quit()
   })
 
-  // 登录
+  // 登录(初始化用户信息)
   ipcMain.on('login', (e, user) => {
     store.token = user.token
     store.userId = user.userId
-    initDatabase()
+    db.initDatabase()
     connectWebSocket()
+  })
+
+  // 获取会话列表
+  ipcMain.handle('getSessionList', () => {
+    return db.getSessionList()
   })
 
 

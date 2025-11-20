@@ -21,7 +21,7 @@
       </div>
     </div>
     <div class="action-button-wrapper">
-      <button class="delete-button">删除好友</button>
+      <button class="chat-button">开始聊天</button>
     </div>
   </div>
 </template>
@@ -29,6 +29,7 @@
 <script setup>
 import Blank from '@/components/BlankView.vue'
 import { ref, watch, nextTick } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const currentSessionId = ref(0)
 const props = defineProps({ sessionId: String })
@@ -43,6 +44,7 @@ const isEditingRemark = ref(false)
 const remarkInputEl = ref(null)
 
 const startEditing = async () => {
+  ElMessage.warning('暂时不支持设置备注')
   isEditingRemark.value = true
   await nextTick()
   remarkInputEl.value?.focus()
@@ -123,8 +125,8 @@ const stopEditing = () => {
   justify-content: center;
 }
 
-.delete-button {
-  background-color: #F56C6C;
+.chat-button {
+  background-color: #42B983;
   color: white;
   border: none;
   border-radius: 5px;
@@ -136,7 +138,7 @@ const stopEditing = () => {
   transition: background-color 0.2s;
 }
 
-.delete-button:hover {
-  background-color: #F78989;
+.chat-button:hover {
+  background-color: #5AC295;
 }
 </style>
