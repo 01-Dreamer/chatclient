@@ -2,12 +2,12 @@
 import WebSocket from 'ws'
 import store from './store'
 import * as db from './db';
+import * as mainWindow from './index'
 
 let ws = null
 let reconnectTimer = null
 let heartbeatTimer = null
 let isIntentionalClose = false
-
 export function connectWebSocket() {
     // 防止重复连接
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
@@ -75,32 +75,44 @@ function stopHeartbeat() {
 }
 
 ////////////////////////////////////
-// 处理消息相关逻辑
+// 处理消息
 ////////////////////////////////////
 function processMessage(message) {
     if (!message) return
     try {
         const msgObj = JSON.parse(message)
         const { id, sessionId, senderId, createTime, type, content } = msgObj
-        // 获取到的createTime是时间戳，转换为标准时间格式
-        const time = new Date(createTime)
-        const formatCreateTime = formatCreateTime.getFullYear() + '-' +
-            String(time.getMonth() + 1).padStart(2, '0') + '-' +
-            String(time.getDate()).padStart(2, '0') + ' ' +
-            String(time.getHours()).padStart(2, '0') + ':' +
-            String(time.getMinutes()).padStart(2, '0') + ':' +
-            String(time.getSeconds()).padStart(2, '0');
-        db.insertMessage(id, sessionId, senderId, formatCreateTime, type, content)
+        const timestampMs = new Date(createTime).getTime()
+        const timestampSeconds = Math.floor(timestampMs / 1000);
+        console.log(createTime, '=>', timestampSeconds)
+
+        db.insertMessage(id, sessionId, senderId, timestampSeconds, type, content)
         if (type === 'text' || type === 'image' || type === 'file' || type === 'red_packet') {
-            // 更新会话列表状态
+            mainWindow.changeSession(sessionId)
+            mainWindow.sendMessage(msgObj)
+        } else if( type === 'red_packet_info') {
+            ;
+        } else if( type === 'friend_application') {
+            ;
+        } else if( type === 'friend_acceptance') {
+            ;
+        } else if( type === 'group_application') {
+            ;
+        } else if( type === 'group_acceptance') {
+            ;
+        } else {
+            console.log('unknown message type:', type)
         }
+
+
     } catch (error) {
         console.log('failed to process message:', error)
     }
 }
 ////////////////////////////////////
 
-export function sendMessage(message) {
+// 发送消息
+export function sendMessageByWs(message) {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(message)
     }

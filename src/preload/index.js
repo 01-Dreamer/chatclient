@@ -30,11 +30,34 @@ const api = {
     return ipcRenderer.invoke('getSessionList')
   },
 
+  getMessageList: (sessionId) => {
+    return ipcRenderer.invoke('getMessageList', sessionId)
+  },
+
+  getLastMessage: (sessionId) => {
+    return ipcRenderer.invoke('getLastMessage', sessionId)
+  },
+
   onSession: (callback) => {
     ipcRenderer.removeAllListeners('session')
-    ipcRenderer.on('session', (event, message) => {
+    ipcRenderer.on('session', (event, sessionId) => {
+      callback(sessionId)
+    })
+  },
+
+  onMessage: (callback) => {
+    ipcRenderer.removeAllListeners('message')
+    ipcRenderer.on('message', (event, message) => {
       callback(message)
     })
+  },
+
+  resetSessionUnreadCount: (sessionId) => {
+    ipcRenderer.send('resetSessionUnreadCount', sessionId)
+  },
+
+  sendMessageByWs: (message) => {
+    ipcRenderer.send('sendMessageByWs', message)
   }
 }
 

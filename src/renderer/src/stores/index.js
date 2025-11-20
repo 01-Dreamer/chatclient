@@ -13,6 +13,7 @@ export const useStore = defineStore('user', {
 
     // session 信息
     sessions: [],
+    currentSessionId: -1
   }),
 
   actions: {
@@ -23,13 +24,16 @@ export const useStore = defineStore('user', {
       this.avatar = user.avatar
       this.token = user.token
     },
+
+    resetSessionUnreadCount(sessionId) {
+      const session = this.sessions.find(s => s.id === sessionId)
+      if (session) {
+        session.unreadCount = 0
+      }
+    }
   },
 
   getters: {
-    getHttpUrl: (state) => state.httpUrl,
-
-    changeSessions: (state, sessions) => {
-      state.sessions = sessions;
-    },
+    getHttpUrl: (state) => state.httpUrl
   }
 })

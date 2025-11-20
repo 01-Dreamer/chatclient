@@ -1,6 +1,6 @@
 <template>
-  <Blank v-show="currentSessionId === 0" />
-  <div class="session-info" v-show="currentSessionId !== 0">
+  <Blank v-show="currentSessionId === -1" />
+  <div class="session-info" v-show="currentSessionId !== -1">
     <div class="session-name no-drag">
       <span>{{ sessionName }}</span>
       <el-icon class="group-icon" v-show="isGroup">
@@ -11,7 +11,7 @@
       <MoreFilled />
     </el-icon>
   </div>
-  <div class="chat-window no-drag" v-show="currentSessionId !== 0">
+  <div class="chat-window no-drag" v-show="currentSessionId !== -1" ref="chatWindowRef">
     <div class="message-list">
       <template v-for="message in messages" :key="message.id">
         <div v-if="message.time" class="message-time">
@@ -31,10 +31,8 @@
             <div class="img-msg" v-else-if="message.type === 'img'">
               <img :src="message.msg" alt="error" class="image-content">
             </div>
-            <div
-              :class="['money-msg', { 'negative-money': message.msg.startsWith('-') }]"
-              v-else-if="message.type === 'money'"
-            >
+            <div :class="['money-msg', { 'negative-money': message.msg.startsWith('-') }]"
+              v-else-if="message.type === 'money'">
               <el-icon :size="28" color="#FFF">
                 <Money />
               </el-icon>
@@ -50,41 +48,122 @@
       </template>
     </div>
   </div>
-  <div class="input-area no-drag" v-show="currentSessionId !== 0">
+  <div class="input-area no-drag" v-show="currentSessionId !== -1">
     <div class="input-toolbar">
       <el-icon class="toolbar-icon" title="发送文件" @click="sendFile">
         <FolderOpened />
       </el-icon>
-      <el-icon class="toolbar-icon" title="截图" @click="takeScreenshot">
+      <el-icon class="toolbar-icon" title="截图" @click="sendImage">
         <Scissor />
       </el-icon>
-      <el-icon class="toolbar-icon" title="红包" @click="showHistory">
+      <el-icon class="toolbar-icon" title="红包" @click="sendMoney">
         <Money />
       </el-icon>
       <el-icon class="toolbar-icon" title="聊天记录" @click="showHistory">
         <ChatLineSquare />
       </el-icon>
     </div>
-    <el-input v-model="inputText" type="textarea" placeholder="输入消息，按 Enter 发送" :resize="'none'"
-      class="input-textarea" />
+    <el-input v-model="inputText" type="textarea" placeholder="输入消息，按 Enter 发送" :resize="'none'" class="input-textarea"
+      @keydown.enter.prevent.exact="sendTextMessage" />
   </div>
 </template>
 
 <script setup>
 import Blank from '@/components/BlankView.vue'
-import { ref, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { Document, Money, FolderOpened, Scissor, ChatLineSquare, MoreFilled, ChatDotSquare } from '@element-plus/icons-vue'
+import { useStore } from '@/stores/index'
 
-
+const store = useStore()
 const currentSessionId = ref(0)
 const sessionName = ref('会话名称')
 const isGroup = ref(true)
 const inputText = ref('')
 
+// 滚动条
+const chatWindowRef = ref(null)
+const scrollToBottom = () => {
+  nextTick(() => {
+    if (chatWindowRef.value) {
+      chatWindowRef.value.scrollTop = chatWindowRef.value.scrollHeight
+    }
+  })
+}
+
+// 时间戳转换函数
+const formatTimestamp = (timestamp) => {
+  const date = new Date(timestamp * 1000)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  const seconds = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+}
+
+// 计算两个时间戳是否超过300s
+const isTimeGapExceeded = (time1, time2) => {
+  return Math.abs(time1 - time2) > 300;
+}
+
+// 添加消息
+let latestTime = 0
+const addMessage = (message) => {
+  let formatTime = null
+  if (isTimeGapExceeded(latestTime, message.createTime)) {
+    formatTime = formatTimestamp(message.createTime)
+    latestTime = message.createTime
+  }
+  messages.value.push({
+    id: message.id,
+    time: formatTime,
+    nickname: "暂时留空",
+    type: message.type,
+    msg: message.content,
+    avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/avatar.jpg',
+    sender: message.senderId !== store.userId
+  })
+  scrollToBottom()
+}
+
+// 获取会话信息
+const updateMessages = async (sessionId) => {
+  sessionId;
+  const messageList = await window.api.getMessageList(sessionId)
+  messages.value = []
+  for (const message of messageList) {
+    addMessage(message)
+  }
+}
+
+// 发送消息
+const sendTextMessage = () => {
+  if (!inputText.value.trim()) return
+  const message = {
+    id: null,
+    sessionId: currentSessionId.value,
+    senderId: store.userId,
+    createTime: null,
+    type: 'text',
+    content: inputText.value.trim()
+  }
+  window.api.sendMessageByWs(JSON.stringify(message))
+  inputText.value = ''
+}
+
+// 监听新消息
+window.api.onMessage((message) => {
+  if (message.sessionId !== currentSessionId.value) return
+  addMessage(message)
+})
+
 const props = defineProps({ sessionId: String })
 watch(() => props.sessionId, (id) => {
   if (!id) return
   currentSessionId.value = Number(id)
+  if (currentSessionId.value === -1) return
+  updateMessages(currentSessionId.value)
 }, { immediate: true })
 
 import Avatar from '@/assets/avatar.jpg'

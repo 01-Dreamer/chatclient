@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3'
 import { app } from 'electron'
-import { join } from 'path'
+import { join } from 'path' 
 import store from './store'
 
 let dbPath = null
@@ -40,7 +40,7 @@ export function initDatabase() {
     id INTEGER PRIMARY KEY,
     sessionId INTEGER NOT NULL,
     senderId INTEGER NOT NULL,
-    createTime TEXT NOT NULL,
+    createTime INTEGER NOT NULL,
     type TEXT NOT NULL,
     content TEXT NOT NULL
     )
@@ -115,4 +115,57 @@ export function getSessionList() {
     SELECT * FROM session WHERE show > 0 ORDER BY show DESC
   `)
   return stmt.all()
+}
+
+// 获取联系人列表
+export function getContactList() {
+  const stmt = db.prepare(`
+    SELECT * FROM session ORDER BY id ASC
+  `)
+  return stmt.all()
+}
+
+// 获取会话消息列表
+export function getMessageList(sessionId) {
+  sessionId = String(sessionId).split('.')[0]
+  const stmt = db.prepare(`
+    SELECT * FROM message WHERE sessionId = ? ORDER BY createTime ASC
+  `)
+  return stmt.all(sessionId)
+}
+
+// 获取会话最后一条消息
+export function getLastMessage(sessionId) {
+  sessionId = String(sessionId).split('.')[0]
+  const stmt = db.prepare(`
+    SELECT * FROM message WHERE sessionId = ? ORDER BY createTime DESC LIMIT 1
+  `)
+  return stmt.get(sessionId)
+}
+
+// 增加会话未读消息数
+export function incrementSessionUnreadCount(id) {
+  id = String(id).split('.')[0]
+  const stmt = db.prepare(`
+    UPDATE session SET unread_count = unread_count + 1 WHERE id = ?
+  `)
+  stmt.run(id)
+}
+
+// 重置会话未读消息数
+export function resetSessionUnreadCount(id) {
+  id = String(id).split('.')[0]
+  const stmt = db.prepare(`
+    UPDATE session SET unread_count = 0 WHERE id = ?
+  `)
+  stmt.run(id)
+}
+
+// 获取用户信息
+export function getUserInfo(id) {
+  id = String(id).split('.')[0]
+  const stmt = db.prepare(`
+    SELECT * FROM user_info WHERE id = ?
+  `)
+  return stmt.get(id)
 }
