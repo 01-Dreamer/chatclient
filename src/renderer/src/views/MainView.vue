@@ -4,7 +4,7 @@
       <el-menu class="sider" default-active="chat">
         <div class="top-menu">
           <div class="user-avatar">
-            <img class="avatar-img" src="@/assets/avatar.jpg" alt="error">
+            <img class="avatar-img" :src="selfAvatarUrl" alt="error">
           </div>
           <el-menu-item class="no-drag" index="chat" @click="changeMenu('session')">
             <el-icon class="menu-icon">
@@ -70,6 +70,10 @@ import Set from '@/views/SetView.vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/stores/index'
 
+
+const store = useStore()
+const selfAvatarUrl = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + store.userId + '.png'
+
 // 时间戳转换函数
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp * 1000)
@@ -82,7 +86,6 @@ const formatTimestamp = (timestamp) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-const store = useStore()
 const updateSessions = async () => {
   const sessionList = await window.api.getSessionList()
   store.sessions = []
@@ -108,14 +111,21 @@ const updateSessions = async () => {
         lastMessageText = '[未知消息]'
       }
     }
+
+    let avatarUrl = null
+    if(session.peer_id === -1) {
+      avatarUrl = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/GroupAvatar.png'
+    } else {
+      avatarUrl = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + session.peer_id + '.png'
+    }
     store.sessions.push({
       id: session.id,
       name: session.name,
-      isGroup: session.is_group === 1,
+      isGroup: session.peer_id === -1,
       latestTime: lastTimeText,
       latestMessage: lastMessageText,
       unreadCount: session.unread_count,
-      avatar: session.avatar
+      avatar: avatarUrl
     })
   }
 }
@@ -149,6 +159,8 @@ const updateSessionById = async (sessionId) => {
     session.latestMessage = lastMessageText
     if(sessionId !== store.currentSessionId) {
       session.unreadCount += 1
+    } else if(store.currentSessionId !== -1) {
+      window.api.resetSessionUnreadCount(store.currentSessionId)
     }
   }
 }

@@ -118,11 +118,11 @@ const addMessage = (message) => {
   messages.value.push({
     id: message.id,
     time: formatTime,
-    nickname: "暂时留空",
+    nickname: message.senderNickname,
     type: message.type,
     msg: message.content,
-    avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/avatar.jpg',
-    sender: message.senderId !== store.userId
+    avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + message.senderId + '.png',
+    sender: message.senderId === store.userId
   })
   scrollToBottom()
 }
@@ -146,7 +146,7 @@ const sendTextMessage = () => {
     senderId: store.userId,
     createTime: null,
     type: 'text',
-    content: inputText.value.trim()
+    content: inputText.value.trim() + "@" + store.nickname
   }
   window.api.sendMessageByWs(JSON.stringify(message))
   inputText.value = ''
@@ -158,12 +158,18 @@ window.api.onMessage((message) => {
   addMessage(message)
 })
 
+// 判断会话是否是群聊
+const isGroupSession = async (sessionId) => {
+  isGroup.value = await window.api.isGroupSession(sessionId)
+}
+
 const props = defineProps({ sessionId: String })
 watch(() => props.sessionId, (id) => {
   if (!id) return
   currentSessionId.value = Number(id)
   if (currentSessionId.value === -1) return
   updateMessages(currentSessionId.value)
+  isGroupSession(currentSessionId.value)
 }, { immediate: true })
 
 import Avatar from '@/assets/avatar.jpg'

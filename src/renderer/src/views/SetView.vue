@@ -59,21 +59,34 @@ import { ref, nextTick } from 'vue'
 import { Wallet, ArrowRight, SwitchButton, EditPen } from '@element-plus/icons-vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useStore } from '@/stores/index'
+import $ from 'jquery'
 
 const store = useStore()
-
 const user = ref({
   id: store.userId,
   nickname: store.nickname,
-  avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/avatar.jpg',
-  balance: '2,580.00'
+  avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + store.userId + '.png',
+  balance: 'error'
+});
+
+// 获取用户余额
+const url = store.getHttpUrl + '/payment/getBalance'
+$.ajax({
+    url: url,
+    type: 'GET',
+    headers: {
+        'Authorization': 'Bearer ' + store.token
+    },
+    success: function(data) {
+        user.value.balance = (data / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
 });
 
 const isEditing = ref(false);
 const nameInputRef = ref(null);
 const startEdit = () => {
   ElMessage.warning('暂时不支持修改昵称');
-  isEditing.value = true;
+  //isEditing.value = true;
   nextTick(() => {
     nameInputRef.value?.focus();
   });
