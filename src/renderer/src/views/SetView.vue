@@ -123,6 +123,7 @@ const handleFileChange = (event) => {
       event.target.value = ''
     },
     error: (error) => {
+      error;
       ElMessage.error('头像上传失败')
       event.target.value = ''
     }

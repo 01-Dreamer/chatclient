@@ -113,6 +113,7 @@ const addFriend = () => {
       }
     },
     error: (error) => {
+      error;
       ElMessage.error('添加好友失败')
     }
   })
@@ -141,6 +142,7 @@ const joinGroup = () => {
       }
     },
     error: (error) => {
+      error;
       ElMessage.error('添加群聊失败')
     }
   })
@@ -175,13 +177,14 @@ const createGroup = () => {
       }
     },
     error: (error) => {
+      error;
       ElMessage.error('创建群聊失败')
     }
   })
 }
 
 const scan = () => {
-  console.log('scan')
+  ElMessage.warning('功能暂未开放')
 }
 
 const handlePlusCommand = (command) => {

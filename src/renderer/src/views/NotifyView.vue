@@ -94,7 +94,7 @@ const getSystemMessageList = async () => {
     if (message.type === 'red_packet_info') {
       const content = JSON.parse(message.content);
       const realAmount = (content.amount / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      if(content.payerId === content.receiverId) { // 红包退款
+      if(content.payerId === "-1") { // 红包退款
         notifications.value.push({
           id: message.id,
           type: 3,
@@ -161,6 +161,7 @@ const acceptFriendRequest = (item) => {
       window.api.deleteMessage(item.id);
     },
     error: (error) => {
+      error;
       ElMessage.error('接受申请失败')
     }
   })
@@ -184,6 +185,7 @@ const acceptGroupRequest = (item) => {
       window.api.deleteMessage(item.id);
     },
     error: (error) => {
+      error;
       ElMessage.error('接受申请失败')
     }
   })

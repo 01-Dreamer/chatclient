@@ -98,6 +98,7 @@ app.whenReady().then(() => {
     const win = BrowserWindow.getFocusedWindow()
     if (window === 'login') {
       win?.setResizable(true)
+      win?.setMinimumSize(0, 0)
       win?.setSize(loginViewWidth, loginViewHeight)
       win?.setResizable(false)
     } else if (window === 'register') {
@@ -193,6 +194,11 @@ app.whenReady().then(() => {
   // 获取会话最后一条消息
   ipcMain.handle('getLastMessage', (e, sessionId) => {
     return db.getLastMessage(sessionId)
+  })
+
+  // 更新消息内容
+  ipcMain.on('updateMessageContent', (e, id, content) => {
+    db.updateMessageContent(id, content)
   })
 
   // 获取系统消息列表

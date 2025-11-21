@@ -1,6 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
-import { getContactList } from '../main/db'
 
 const api = {
   changeWindow: (window) => {
@@ -91,6 +90,10 @@ const api = {
 
   getSessionName: (sessionId) => {
     return ipcRenderer.invoke('getSessionName', sessionId)
+  },
+
+  updateMessageContent: (id, content) => {
+    ipcRenderer.send('updateMessageContent', id, content)
   }
 
 }

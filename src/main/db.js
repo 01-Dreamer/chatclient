@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3'
-import { app, session } from 'electron'
+import { app } from 'electron'
 import { join } from 'path' 
 import store from './store'
 
@@ -64,6 +64,15 @@ export function insertMessage(id, sessionId, senderId, senderNickname, createTim
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `)
   stmt.run(id, sessionId, senderId, senderNickname, createTime, type, content)
+}
+
+// 更新消息内容
+export function updateMessageContent(id, content) {
+  id = String(id).split('.')[0]
+  const stmt = db.prepare(`
+    UPDATE message SET content = ? WHERE id = ?
+  `)
+  stmt.run(content, id)
 }
 
 // 插入会话
