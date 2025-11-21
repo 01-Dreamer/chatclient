@@ -1,7 +1,7 @@
 <template>
   <Layout class="drag">
     <template #left-content>
-      <el-menu class="sider" default-active="chat">
+      <el-menu class="sider" :default-active="selectedMenu">
         <div class="top-menu">
           <div class="user-avatar">
             <img class="avatar-img" :src="selfAvatarUrl" alt="error">
@@ -34,16 +34,26 @@
     <template #mid-content>
       <div class="top-search">
         <div class="search-box">
-          <el-input class="search-input no-drag" size="small" placeholder="搜索">
+          <el-input class="search-input no-drag" size="small" placeholder="搜索" v-model="searchText">
             <template #prefix>
               <el-icon>
                 <Search />
               </el-icon>
             </template>
           </el-input>
-          <el-icon class="plus-icon no-drag">
-            <Plus />
-          </el-icon>
+          <el-dropdown trigger="click" @command="handlePlusCommand" popper-class="no-drag">
+            <el-icon class="plus-icon no-drag">
+              <Plus />
+            </el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="addFriend">添加好友</el-dropdown-item>
+                <el-dropdown-item command="joinGroup">加入群聊</el-dropdown-item>
+                <el-dropdown-item command="createGroup">创建群聊</el-dropdown-item>
+                <el-dropdown-item command="scan">扫一扫</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </div>
       </div>
       <router-view name="MainLeft" />
@@ -69,12 +79,128 @@ import Notify from '@/views/NotifyView.vue'
 import Set from '@/views/SetView.vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/stores/index'
+import { storeToRefs } from 'pinia'
+import { ElMessage } from 'element-plus'
+import $ from 'jquery'
 
 
 const store = useStore()
+const { selectedMenu } = storeToRefs(store)
 const selfAvatarUrl = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + store.userId + '.png'
 
-// 时间戳转换函数
+const searchText = ref('')
+
+// 添加好友
+const addFriend = () => {
+  if (isNaN(searchText.value)) {
+    ElMessage.error('请输入正确的用户ID')
+    return
+  }
+  const friendId = parseInt(searchText.value)
+  const url = store.getHttpUrl + '/session/applyAddFriend?friendId=' + friendId;
+  $.ajax({
+    url: url,
+    type: 'POST',
+    headers: {
+        'Authorization': 'Bearer ' + store.token
+    },
+    success: (data) => {
+      if(data) {
+        ElMessage.success('好友请求已发送')
+        searchText.value = ''
+      } else {
+        ElMessage.error('用户不存在或已经是好友')
+      }
+    },
+    error: (error) => {
+      ElMessage.error('添加好友失败')
+    }
+  })
+}
+
+// 加入群聊
+const joinGroup = () => {
+  if (isNaN(searchText.value)) {
+    ElMessage.error('请输入正确的群聊ID')
+    return
+  }
+  const sessionId = parseInt(searchText.value)
+  const url = store.getHttpUrl + '/session/applyJoinGroup?sessionId=' + sessionId;
+  $.ajax({
+    url: url,
+    type: 'POST',
+    headers: {
+        'Authorization': 'Bearer ' + store.token
+    },
+    success: (data) => {
+      if(data) {
+        ElMessage.success('群聊请求已发送')
+        searchText.value = ''
+      } else {
+        ElMessage.error('群聊不存在或已经在群内')
+      }
+    },
+    error: (error) => {
+      ElMessage.error('添加群聊失败')
+    }
+  })
+}
+
+// 创建群聊
+const createGroup = () => {
+  const name = searchText.value.trim()
+  if (name.length === 0) {
+    ElMessage.error('请输入群聊名称')
+    return
+  }
+  const url = store.getHttpUrl + '/session/createGroupSession?name=' + encodeURIComponent(name);
+  $.ajax({
+    url: url,
+    type: 'POST',
+    headers: {
+        'Authorization': 'Bearer ' + store.token
+    },
+    success: (data) => {
+      if(data !== -1) {
+        window.api.addSession({
+          id: data,
+          name: name,
+          peer_id: -1,
+          avatar: 'null'
+        })
+        ElMessage.success('群聊创建成功')
+        searchText.value = ''
+      } else {
+        ElMessage.error('创建群聊失败')
+      }
+    },
+    error: (error) => {
+      ElMessage.error('创建群聊失败')
+    }
+  })
+}
+
+const scan = () => {
+  console.log('scan')
+}
+
+const handlePlusCommand = (command) => {
+  switch (command) {
+    case 'addFriend':
+      addFriend()
+      break
+    case 'joinGroup':
+      joinGroup()
+      break
+    case 'createGroup':
+      createGroup()
+      break
+    case 'scan':
+      scan()
+      break
+  }
+}
+
 const formatTimestamp = (timestamp) => {
   const date = new Date(timestamp * 1000)
   const year = date.getFullYear()
@@ -113,14 +239,16 @@ const updateSessions = async () => {
     }
 
     let avatarUrl = null
-    if(session.peer_id === -1) {
+    if (session.peer_id === -1) {
       avatarUrl = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/GroupAvatar.png'
     } else {
       avatarUrl = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + session.peer_id + '.png'
     }
+
+    const shortSessionName = session.name.length > 3 ? session.name.substring(0, 3) + '...' : session.name
     store.sessions.push({
       id: session.id,
-      name: session.name,
+      name: shortSessionName,
       isGroup: session.peer_id === -1,
       latestTime: lastTimeText,
       latestMessage: lastMessageText,
@@ -130,7 +258,6 @@ const updateSessions = async () => {
   }
 }
 
-// 更新特定会话的最后一条消息
 const updateSessionById = async (sessionId) => {
   const session = store.sessions.find(s => s.id === sessionId)
   if (session) {
@@ -157,17 +284,16 @@ const updateSessionById = async (sessionId) => {
     }
     session.latestTime = lastTimeText
     session.latestMessage = lastMessageText
-    if(sessionId !== store.currentSessionId) {
+    if (sessionId !== store.currentSessionId) {
       session.unreadCount += 1
-    } else if(store.currentSessionId !== -1) {
+    } else if (store.currentSessionId !== -1) {
       window.api.resetSessionUnreadCount(store.currentSessionId)
     }
   }
 }
 
-// 监听主进程的Session变化
 window.api.onSession((sessionId) => {
-  if(sessionId === null) {
+  if (sessionId === null) {
     updateSessions()
   } else {
     updateSessionById(sessionId)
@@ -178,15 +304,16 @@ onMounted(() => {
   updateSessions()
 })
 
-// 切换菜单
 const router = useRouter()
 const changeMenu = (clickMenu) => {
   switch (clickMenu) {
     case 'session':
+      store.selectedMenu = 'chat'
       store.currentSessionId = -1
       router.push('/main/session/-1')
       break
     case 'contact':
+      store.selectedMenu = 'user'
       store.currentSessionId = -1
       router.push('/main/contact/-1')
       break
@@ -195,13 +322,11 @@ const changeMenu = (clickMenu) => {
   }
 }
 
-// 显示通知
 const notifyVisible = ref(false)
 const showNotification = () => {
   notifyVisible.value = true
 }
 
-// 显示设置
 const setVisible = ref(false)
 const showSet = () => {
   setVisible.value = true
@@ -277,6 +402,7 @@ const showSet = () => {
   height: 100%;
   margin-left: 10px;
   padding: 0 3px;
+  outline: none;
 }
 
 .plus-icon:hover {

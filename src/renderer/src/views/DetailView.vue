@@ -2,7 +2,14 @@
   <Blank v-show="currentSessionId === -1" />
   <div class="friend-profile-container no-drag" v-show="currentSessionId !== -1">
     <div class="profile-content">
-      <img :src="avatarUrl" alt="avatar" class="avatar-img">
+      <el-tooltip
+        effect="dark"
+        :content="'ID: ' + currentSessionId"
+        placement="top"
+        :disabled="!isGroup"
+      >
+        <img :src="avatarUrl" alt="avatar" class="avatar-img">
+      </el-tooltip>
 
       <div class="friend-name-wrapper">
         <div v-if="!isEditingName" @click="startEditingName" class="name-text-display">
@@ -18,7 +25,6 @@
           type="text"
         >
       </div>
-
       <div class="friend-remark">
         <span>备注：</span>
         <div v-if="!isEditingRemark" @click="startEditingRemark" class="remark-text-display">
@@ -36,7 +42,7 @@
       </div>
     </div>
     <div class="action-button-wrapper">
-      <button class="chat-button">开始聊天</button>
+      <button class="chat-button" @click="goToChat">开始聊天</button>
     </div>
   </div>
 </template>
@@ -45,12 +51,23 @@
 import Blank from '@/components/BlankView.vue'
 import { ref, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router';
+import { useStore } from '@/stores/index';
 
-// 判断会话是否是群聊
+const store = useStore();
+const router = useRouter();
+const goToChat = () => {
+  if(currentSessionId.value === -1) return
+  store.selectedMenu = 'chat'
+  window.api.showSession(currentSessionId.value)
+  router.push(`/main/session/${currentSessionId.value}`)
+}
+
 const avatarUrl = ref()
+const isGroup = ref(false)
 const isGroupSession = async (sessionId) => {
-  const isGroup = await window.api.isGroupSession(sessionId)
-  if(isGroup) {
+  isGroup.value = await window.api.isGroupSession(sessionId)
+  if(isGroup.value) {
     avatarUrl.value = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/GroupAvatar.png'
     sessionNameText.value = '群聊名称'
   } else {
@@ -123,6 +140,7 @@ const stopEditingRemark = () => {
   height: 70px;
   border-radius: 8px;
   margin-bottom: 20px;
+  cursor: pointer;
 }
 
 .friend-name-wrapper {

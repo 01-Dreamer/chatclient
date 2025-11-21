@@ -1,8 +1,14 @@
 <template>
   <div class="set-container">
-    
+    <input
+      type="file"
+      ref="fileInput"
+      accept="image/*"
+      style="display: none"
+      @change="handleFileChange"
+    />
     <div class="profile-card">
-      <div class="avatar-wrapper">
+      <div class="avatar-wrapper" @click="triggerFileUpload">
         <el-avatar :size="64" :src="user.avatar" shape="square" />
       </div>
       
@@ -69,7 +75,6 @@ const user = ref({
   balance: 'error'
 });
 
-// 获取用户余额
 const url = store.getHttpUrl + '/payment/getBalance'
 $.ajax({
     url: url,
@@ -81,6 +86,48 @@ $.ajax({
         user.value.balance = (data / 100).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 });
+
+const fileInput = ref(null)
+
+const triggerFileUpload = () => {
+  fileInput.value.click()
+}
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+  if (!file.type.startsWith('image/')) {
+    ElMessage.error('请选择图片文件')
+    return
+  }
+
+  const formData = new FormData()
+  formData.append('file', file)
+  const url = store.getHttpUrl + '/session/updateUserAvatar'
+  $.ajax({
+    url: url,
+    type: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + store.token
+    },
+    data: formData,
+    processData: false,
+    contentType: false,
+    success: (data) => {
+      if (data) {
+        ElMessage.success('头像上传成功')
+        user.value.avatar = store.getHttpUrl + '/chat/UserAvatar_' + store.userId + '.png'
+      } else {
+        ElMessage.error('头像上传失败')
+      }
+      event.target.value = ''
+    },
+    error: (error) => {
+      ElMessage.error('头像上传失败')
+      event.target.value = ''
+    }
+  })
+}
 
 const isEditing = ref(false);
 const nameInputRef = ref(null);
@@ -111,7 +158,7 @@ const handleLogout = () => {
     }
   )
     .then(() => {
-      ElMessage.success('已安全退出');
+      window.api.exitApp()
     })
     .catch(() => {
     });
@@ -147,6 +194,7 @@ const handleLogout = () => {
   width: 64px;
   height: 64px;
   display: flex; 
+  cursor: pointer;
 }
 
 .user-info {

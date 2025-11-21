@@ -1,6 +1,7 @@
 <template>
   <div class="session-window">
     <div v-for="session in sessions" :key="session.id" class="session-item no-drag" @click="changeSession(session.id)"
+      @contextmenu.prevent="handleContextMenu($event, session.id)"
       :style="{ background: session.id === currentSessionId ? '#D8D8D8' : '' }">
       <el-badge :max="99" :hidden="!session.unreadCount" :value="session.unreadCount" class="session-avatar">
         <img class="avatar-img" :src="session.avatar" alt="error">
@@ -23,15 +24,26 @@
       </div>
     </div>
   </div>
+
+  <div v-show="menuVisible" class="context-menu" :style="{ top: menuTop + 'px', left: menuLeft + 'px' }">
+    <div class="menu-item" @click.stop="handleHideSession">
+      隐藏会话
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/stores/index'
 import { storeToRefs } from 'pinia'
 
-const currentSessionId = ref(0)
+const currentSessionId = ref(-1)
+
+const menuVisible = ref(false)
+const menuTop = ref(0)
+const menuLeft = ref(0)
+const targetSessionId = ref(null)
 
 const props = defineProps({ sessionId: String })
 watch(() => props.sessionId, (id) => {
@@ -52,6 +64,34 @@ const changeSession = (id) => {
   window.api.resetSessionUnreadCount(id)
   router.push(`/main/session/${id}`)
 }
+
+const handleContextMenu = (event, sessionId) => {
+  menuVisible.value = true
+  menuLeft.value = event.clientX
+  menuTop.value = event.clientY
+  targetSessionId.value = sessionId
+}
+
+const handleHideSession = () => {
+  window.api.hideSession(targetSessionId.value)
+  menuVisible.value = false
+
+  if(currentSessionId.value === targetSessionId.value) {
+    router.push('/main/session/-1')
+  }
+}
+
+const closeMenu = () => {
+  menuVisible.value = false
+}
+
+onMounted(() => {
+  window.addEventListener('click', closeMenu)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('click', closeMenu)
+})
 </script>
 
 <style scoped>
@@ -131,5 +171,28 @@ const changeSession = (id) => {
   font-size: 12px;
   line-height: 1.4;
   font-weight: 100;
+}
+
+.context-menu {
+  position: fixed;
+  z-index: 9999;
+  background: white;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 5px 0;
+  border: 1px solid #EBEEF5;
+}
+
+.menu-item {
+  padding: 8px 15px;
+  font-size: 13px;
+  color: #606266;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.menu-item:hover {
+  background-color: #F5F7FA;
+  color: #409EFF;
 }
 </style>

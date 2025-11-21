@@ -85,15 +85,15 @@ function processMessage(message) {
         const timestampMs = new Date(createTime).getTime()
         const timestampSeconds = Math.floor(timestampMs / 1000);
 
-        let senderNickname = 'system'
-        let realContent = content;
-        const atIndex = content.lastIndexOf('@');
-        if (atIndex !== -1) {
-            senderNickname = content.substring(atIndex + 1)
-            realContent = content.substring(0, atIndex)
-        }
-        db.insertMessage(id, sessionId, senderId, senderNickname, timestampSeconds, type, realContent)
+
         if (type === 'text' || type === 'image' || type === 'file' || type === 'red_packet') {
+            let senderNickname = 'system'
+            let realContent = content;
+            const atIndex = content.lastIndexOf('@');
+            if (atIndex !== -1) {
+                senderNickname = content.substring(atIndex + 1)
+                realContent = content.substring(0, atIndex)
+            }
             mainWindow.changeSession(sessionId)
             mainWindow.sendMessage({
                 id: id,
@@ -105,22 +105,31 @@ function processMessage(message) {
                 content: realContent
             })
             db.incrementSessionUnreadCount(sessionId)
+            db.insertMessage(id, sessionId, senderId, senderNickname, timestampSeconds, type, realContent)
 
         } else if (type === 'red_packet_info') {
-            ;
+            db.insertMessage(id, sessionId, senderId, "system", timestampSeconds, type, content);;
         } else if (type === 'friend_application') {
-            ;
+            db.insertMessage(id, sessionId, senderId, "system", timestampSeconds, type, content);;
         } else if (type === 'friend_acceptance') {
-            ;
+            // 好友申请通过
+            const friendAcInfo = JSON.parse(content);
+            if(friendAcInfo.applicantId === store.userId) { // 我是申请者
+                db.insertSession(friendAcInfo.sessionId, friendAcInfo.requesterId, friendAcInfo.requesterNickname, 'null');
+            } else { // 我是被添加者
+                db.insertSession(friendAcInfo.sessionId, friendAcInfo.applicantId, friendAcInfo.applicantNickname, 'null');
+            }
+            mainWindow.changeSession(null); // 刷新会话列表
         } else if (type === 'group_application') {
-            ;
+            db.insertMessage(id, sessionId, senderId, "system", timestampSeconds, type, content);;
         } else if (type === 'group_acceptance') {
-            ;
+            // 群聊申请通过
+            const groupAcInfo = JSON.parse(content);
+            db.insertSession(groupAcInfo.sessionId, -1, groupAcInfo.sessionName, 'null');
+            mainWindow.changeSession(null); // 刷新会话列表
         } else {
             console.log('unknown message type:', type)
         }
-
-
     } catch (error) {
         console.log('failed to process message:', error)
     }

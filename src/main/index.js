@@ -4,7 +4,7 @@ import icon from '../../resources/icon.png?asset'
 import { join } from 'path'
 import * as db from './db'
 import store from './store'
-import { connectWebSocket, sendMessageByWs } from './websocket'
+import { connectWebSocket, sendMessageByWs, closeWebSocket } from './websocket'
 
 // 窗口尺寸信息
 const loginViewWidth = 300
@@ -144,6 +144,7 @@ app.whenReady().then(() => {
 
   // 关闭主进程
   ipcMain.on('exitApp', () => {
+    closeWebSocket()
     app.quit()
   })
 
@@ -158,6 +159,25 @@ app.whenReady().then(() => {
   // 获取会话列表
   ipcMain.handle('getSessionList', () => {
     return db.getSessionList()
+  })
+
+  // 隐藏会话
+  ipcMain.on('hideSession', (e, id) => {
+    db.updateSessionShow(id, 0)
+    changeSession(null)
+  })
+
+  // 显示会话
+  ipcMain.on('showSession', (e, id) => {
+    db.showSession(id)
+    changeSession(null)
+  })
+
+  // 新增会话
+  ipcMain.on('addSession', (e, session) => {
+    console.log('addSession', session)
+    db.insertSession(session.id, session.peer_id, session.name, session.avatar)
+    changeSession(null)
   })
 
   // 获取联系人列表
@@ -175,9 +195,24 @@ app.whenReady().then(() => {
     return db.getLastMessage(sessionId)
   })
 
+  // 获取系统消息列表
+  ipcMain.handle('getSystemMessageList', () => {
+    return db.getSystemMessageList()
+  })
+
+  // 删除消息
+  ipcMain.on('deleteMessage', (e, id) => {
+    db.deleteMessage(id)
+  })
+
   // 判断会话是否是群聊
   ipcMain.handle('isGroupSession', (e, sessionId) => {
     return db.isGroupSession(sessionId)
+  })
+
+  // 获取会话名称
+  ipcMain.handle('getSessionName', (e, sessionId) => {
+    return db.getSessionName(sessionId)
   })
 
   // 重置会话未读消息数
