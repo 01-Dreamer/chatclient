@@ -156,6 +156,7 @@ const register = () => {
       formData.value = {}
     },
     error: (error) => {
+      error;
       ElMessage({
         type: 'error',
         message: '无法连接服务器',

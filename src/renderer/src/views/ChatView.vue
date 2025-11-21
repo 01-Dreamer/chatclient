@@ -22,17 +22,17 @@
           <div class="message-content">
             <div class="nickname" v-if="!message.sender">{{ message.nickname }}</div>
             <div class="text-msg" v-if="message.type === 'text'">{{ message.msg }}</div>
-            <div class="file-msg" v-else-if="message.type === 'file'">
+            <div class="file-msg" v-else-if="message.type === 'file'" @click="downloadFile(message.msg)">
               <el-icon :size="30">
                 <Document />
               </el-icon>
-              <span class="file-name">文件</span>
+              <span class="file-name">{{ message.msg.substr(82) }}</span>
             </div>
             <div class="img-msg" v-else-if="message.type === 'image'">
               <img :src="message.msg" alt="error" class="image-content">
             </div>
             <div :class="['money-msg', { 'negative-money': message.msg.startsWith('-') }]"
-              v-else-if="message.type === 'red_packet'">
+              v-else-if="message.type === 'red_packet'" @click="getRedPacket(message.id, message.redPacketId, message.msg)">
               <el-icon :size="28" color="#FFF">
                 <Money />
               </el-icon>
@@ -56,10 +56,10 @@
       <el-icon class="toolbar-icon" title="截图" @click="sendImage">
         <Scissor />
       </el-icon>
-      <el-icon class="toolbar-icon" title="红包" @click="sendMoney">
+      <el-icon class="toolbar-icon" title="红包" @click="sendRedPacket">
         <Money />
       </el-icon>
-      <el-icon class="toolbar-icon" title="聊天记录" @click="showHistory">
+      <el-icon class="toolbar-icon" title="聊天记录">
         <ChatLineSquare />
       </el-icon>
     </div>
@@ -71,7 +71,7 @@
 <script setup>
 import Blank from '@/components/BlankView.vue'
 import { ref, watch, nextTick } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { Document, Money, FolderOpened, Scissor, ChatLineSquare, MoreFilled, ChatDotSquare } from '@element-plus/icons-vue'
 import { useStore } from '@/stores/index'
 import $ from 'jquery'
@@ -129,9 +129,10 @@ const uploadFile = (file) => {
       processData: false,
       contentType: false,
       success: (data) => {
-        resolve(data) 
+        resolve(data)
       },
       error: (error) => {
+        error;
         resolve(null)
       }
     })
@@ -165,13 +166,13 @@ const sendImgOrFile = (isImage) => {
   if (isImage) {
     input.accept = 'image/*'
   }
-  
+
   input.onchange = async (e) => {
     const file = e.target.files[0]
     if (!file) return
 
     if (isImage && !file.type.startsWith('image/')) {
-      ElMessage.error('只能发送图片格式文件')
+      ElMessage.error('只能选择图片格式文件')
       return
     }
 
@@ -181,13 +182,14 @@ const sendImgOrFile = (isImage) => {
       return
     }
 
-    if(isImage) {
+    if (isImage) {
       sendMessage('image', fileUrl)
     } else {
       sendMessage('file', fileUrl)
     }
+    ElMessage.success(isImage ? '图片发送成功' : '文件发送成功')
   }
-  
+
   input.click()
 }
 
@@ -195,15 +197,82 @@ const sendImage = () => sendImgOrFile(true)
 const sendFile = () => sendImgOrFile(false)
 
 
-
-// 发送红包
 const sendRedPacket = () => {
+  ElMessageBox.prompt('请输入红包金额', '发送红包', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    inputType: 'text',
+    inputPattern: /^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/,
+    inputErrorMessage: '请输入正确的金额（最多两位小数）',
+  })
+    .then(({ value }) => {
+      const amount = Math.round(parseFloat(value) * 100);
+      if (amount <= 0) {
+        ElMessage.warning('红包金额必须大于0');
+        return;
+      }
 
+      const redPacketId = crypto.randomUUID();
+      const url = store.getHttpUrl + '/payment/setRedPacket?redPacketId=' + redPacketId + '&amount=' + amount;
+      $.ajax({
+        url: url,
+        type: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + store.token
+        },
+        success: (data) => {
+          if (data) {
+            ElMessage.success('红包发送成功')
+            sendMessage('red_packet', redPacketId + '%' + amount)
+          } else {
+            ElMessage.error('余额不足')
+          }
+        },
+        error: (error) => {
+          error;
+          ElMessage.error('红包发送失败')
+        }
+      })
+    })
+    .catch(() => {
+      ElMessage.info('已取消发送');
+    });
 }
 
 // 获取红包
-const getRedPacket = () => {
+const getRedPacket = (id, redPacketId, amount) => {
+  amount = amount.replace('.', '');
+  if(amount.startsWith('-')) {
+    return
+  }
 
+  const url = store.getHttpUrl + '/payment/getRedPacket?redPacketId=' + redPacketId + '&userId=' + store.userId;
+  $.ajax({
+    url: url,
+    type: 'GET',
+    success: (data) => {
+      if (data) {
+        ElMessage.success('红包领取成功')
+      } else {
+        ElMessage.error('红包已被领取或过期')
+      }
+      window.api.updateMessageContent(id, redPacketId + '%-' + amount)
+    },
+    error: (error) => {
+      error;
+      ElMessage.error('红包获取失败')
+    }
+  })
+}
+
+// 下载文件[弹出文件保存对话框]（主进程没有提供API）
+const downloadFile = (fileUrl) => {
+  const link = document.createElement('a')
+  link.href = fileUrl
+  link.style.display = 'none'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 // 添加消息
@@ -280,53 +349,7 @@ watch(() => props.sessionId, (id) => {
   getSessionName(currentSessionId.value)
 }, { immediate: true })
 
-const messages = ref([
-  // {
-  //   id: 1,
-  //   time: '2025-10-3 20:38',
-  //   nickname: '用户1',
-  //   type: 'text',
-  //   msg: '测试消息',
-  //   avatar: Avatar,
-  //   sender: false
-  // },
-  // {
-  //   id: 2,
-  //   time: null,
-  //   nickname: '用户2',
-  //   type: 'file',
-  //   msg: '测试文件',
-  //   avatar: Avatar,
-  //   sender: false
-  // },
-  // {
-  //   id: 3,
-  //   time: null,
-  //   nickname: '用户3',
-  //   type: 'img',
-  //   msg: Avatar,
-  //   avatar: Avatar,
-  //   sender: true
-  // },
-  // {
-  //   id: 4,
-  //   time: '2025-10-3 20:54',
-  //   nickname: '用户4',
-  //   type: 'money',
-  //   msg: '12.00',
-  //   avatar: Avatar,
-  //   sender: false
-  // },
-  // {
-  //   id: 5,
-  //   time: null,
-  //   nickname: '用户5',
-  //   type: 'money',
-  //   msg: '-8.88',
-  //   avatar: Avatar,
-  //   sender: false
-  // }
-])
+const messages = ref([])
 </script>
 
 <style scoped>
