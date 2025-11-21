@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import { getContactList } from '../main/db'
 
 const api = {
   changeWindow: (window) => {
@@ -30,6 +31,10 @@ const api = {
     return ipcRenderer.invoke('getSessionList')
   },
 
+  getContactList: () => {
+    return ipcRenderer.invoke('getContactList')
+  },
+
   getMessageList: (sessionId) => {
     return ipcRenderer.invoke('getMessageList', sessionId)
   },
@@ -58,7 +63,12 @@ const api = {
 
   sendMessageByWs: (message) => {
     ipcRenderer.send('sendMessageByWs', message)
+  },
+
+  isGroupSession: (sessionId) => {
+    return ipcRenderer.invoke('isGroupSession', sessionId)
   }
+
 }
 
 if (process.contextIsolated) {

@@ -2,19 +2,34 @@
   <Blank v-show="currentSessionId === -1" />
   <div class="friend-profile-container no-drag" v-show="currentSessionId !== -1">
     <div class="profile-content">
-      <img src="@/assets/avatar.jpg" alt="avatar" class="avatar-img">
-      <div class="friend-name">好友昵称</div>
+      <img :src="avatarUrl" alt="avatar" class="avatar-img">
+
+      <div class="friend-name-wrapper">
+        <div v-if="!isEditingName" @click="startEditingName" class="name-text-display">
+          {{ sessionNameText }}
+        </div>
+        <input
+          v-else
+          ref="nameInputEl"
+          v-model="sessionNameText"
+          @blur="stopEditingName"
+          @keyup.enter="stopEditingName"
+          class="name-input"
+          type="text"
+        >
+      </div>
+
       <div class="friend-remark">
         <span>备注：</span>
-        <div v-if="!isEditingRemark" @click="startEditing" class="remark-text-display">
+        <div v-if="!isEditingRemark" @click="startEditingRemark" class="remark-text-display">
           {{ remarkText }}
         </div>
         <input
           v-else
           ref="remarkInputEl"
           v-model="remarkText"
-          @blur="stopEditing"
-          @keyup.enter="stopEditing"
+          @blur="stopEditingRemark"
+          @keyup.enter="stopEditingRemark"
           class="remark-input"
           type="text"
         >
@@ -31,26 +46,55 @@ import Blank from '@/components/BlankView.vue'
 import { ref, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
 
-const currentSessionId = ref(0)
+// 判断会话是否是群聊
+const avatarUrl = ref()
+const isGroupSession = async (sessionId) => {
+  const isGroup = await window.api.isGroupSession(sessionId)
+  if(isGroup) {
+    avatarUrl.value = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/GroupAvatar.png'
+    sessionNameText.value = '群聊名称'
+  } else {
+    avatarUrl.value = 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar.png'
+    sessionNameText.value = '好友昵称'
+  }
+}
+
+const currentSessionId = ref(-1)
 const props = defineProps({ sessionId: String })
 watch(() => props.sessionId, (id) => {
   if (!id) return
   currentSessionId.value = Number(id)
+  if (currentSessionId.value === -1) return
+  isGroupSession(currentSessionId.value)
 }, { immediate: true })
 
+const sessionNameText = ref('')
+const isEditingName = ref(false)
+const nameInputEl = ref(null)
+
+const startEditingName = async () => {
+  ElMessage.warning('暂时不支持修改')
+  //isEditingName.value = true
+  await nextTick()
+  nameInputEl.value?.focus()
+}
+
+const stopEditingName = () => {
+  isEditingName.value = false
+}
 
 const remarkText = ref('备注名')
 const isEditingRemark = ref(false)
 const remarkInputEl = ref(null)
 
-const startEditing = async () => {
-  ElMessage.warning('暂时不支持设置备注')
-  isEditingRemark.value = true
+const startEditingRemark = async () => {
+  ElMessage.warning('暂时不支持修改')
+  //isEditingRemark.value = true
   await nextTick()
   remarkInputEl.value?.focus()
 }
 
-const stopEditing = () => {
+const stopEditingRemark = () => {
   isEditingRemark.value = false
 }
 </script>
@@ -71,6 +115,7 @@ const stopEditing = () => {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .avatar-img {
@@ -80,11 +125,40 @@ const stopEditing = () => {
   margin-bottom: 20px;
 }
 
-.friend-name {
+.friend-name-wrapper {
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 32px;
+}
+
+.name-text-display {
   font-size: 22px;
   font-weight: bold;
   color: #000;
-  margin-bottom: 10px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.name-text-display:hover {
+  background-color: #F0F0F0;
+}
+
+.name-input {
+  font-size: 22px;
+  font-weight: bold;
+  font-family: inherit;
+  color: #000;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  border-bottom: 1px solid #42B983;
+  width: 180px;
+  text-align: center;
+  padding: 2px 4px;
 }
 
 .friend-remark {
@@ -117,6 +191,7 @@ const stopEditing = () => {
   border-bottom: 1px solid #42B983;
   width: 120px;
   padding: 2px 4px;
+  text-align: center;
 }
 
 .action-button-wrapper {

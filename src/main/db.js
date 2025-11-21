@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3'
-import { app } from 'electron'
+import { app, session } from 'electron'
 import { join } from 'path' 
 import store from './store'
 
@@ -17,20 +17,11 @@ export function initDatabase() {
   db.exec(`
     CREATE TABLE IF NOT EXISTS session (
       id INTEGER PRIMARY KEY,
-      is_group INTEGER NOT NULL,
+      peer_id INTEGER NOT NULL,
       name TEXT NOT NULL,
       avatar TEXT NOT NULL,
       unread_count INTEGER DEFAULT 0,
       show INTEGER DEFAULT 0
-    )
-  `)
-
-  // 用户头像、昵称数据库
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS user_info (
-      id INTEGER PRIMARY KEY,
-      nickname TEXT NOT NULL,
-      avatar TEXT NOT NULL
     )
   `)
 
@@ -40,6 +31,7 @@ export function initDatabase() {
     id INTEGER PRIMARY KEY,
     sessionId INTEGER NOT NULL,
     senderId INTEGER NOT NULL,
+    senderNickname TEXT NOT NULL,
     createTime INTEGER NOT NULL,
     type TEXT NOT NULL,
     content TEXT NOT NULL
@@ -62,43 +54,39 @@ export function closeDatabase() {
 }
 
 // 插入消息
-export function insertMessage(id, sessionId, senderId, createTime, type, content) {
+export function insertMessage(id, sessionId, senderId, senderNickname, createTime, type, content) {
+  id = String(id).split('.')[0]
+  sessionId = String(sessionId).split('.')[0]
+  senderId = String(senderId).split('.')[0]
+  createTime = String(createTime).split('.')[0]
   const stmt = db.prepare(`
-    INSERT INTO message (id, sessionId, senderId, createTime, type, content)
-    VALUES (?, ?, ?, ?, ?, ?)
+    INSERT INTO message (id, sessionId, senderId, senderNickname, createTime, type, content)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `)
-  stmt.run(id, sessionId, senderId, createTime, type, content)
-}
-
-// 插入或更新用户信息
-export function insertOrUpdateUserInfo(id, nickname, avatar) {
-  const stmt = db.prepare(`
-    INSERT INTO user_info (id, nickname, avatar)
-    VALUES (?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-      nickname=excluded.nickname,
-      avatar=excluded.avatar
-  `)
-  stmt.run(id, nickname, avatar)
+  stmt.run(id, sessionId, senderId, senderNickname, createTime, type, content)
 }
 
 // 插入会话
-export function insertSession(id, is_group, name, avatar) {
+export function insertSession(id, peer_id, name, avatar) {
+  id = String(id).split('.')[0]
+  peer_id = String(peer_id).split('.')[0]
   const stmt = db.prepare(`
-    INSERT INTO session (id, is_group, name, avatar, unread_count, show)
+    INSERT INTO session (id, peer_id, name, avatar, unread_count, show)
     VALUES (?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
-      is_group=excluded.is_group,
+      peer_id=excluded.peer_id,
       name=excluded.name,
       avatar=excluded.avatar,
       show=excluded.show
   `)
-  stmt.run(id, is_group, name, avatar, 0, current_max_show + 1)
+  stmt.run(id, peer_id, name, avatar, 0, current_max_show + 1)
   current_max_show += 1
 }
 
 // 更新会话显示顺序
 export function updateSessionShow(id, show) {
+  id = String(id).split('.')[0]
+  show = String(show).split('.')[0]
   if (show === -1) {
     current_max_show += 1
     show = current_max_show
@@ -134,6 +122,16 @@ export function getMessageList(sessionId) {
   return stmt.all(sessionId)
 }
 
+// 判断会话是否是群聊
+export function isGroupSession(sessionId) {
+  sessionId = String(sessionId).split('.')[0]
+  const stmt = db.prepare(`
+    SELECT peer_id FROM session WHERE id = ?
+  `)
+  const row = stmt.get(sessionId)
+  return row && row.peer_id === -1
+}
+
 // 获取会话最后一条消息
 export function getLastMessage(sessionId) {
   sessionId = String(sessionId).split('.')[0]
@@ -159,13 +157,4 @@ export function resetSessionUnreadCount(id) {
     UPDATE session SET unread_count = 0 WHERE id = ?
   `)
   stmt.run(id)
-}
-
-// 获取用户信息
-export function getUserInfo(id) {
-  id = String(id).split('.')[0]
-  const stmt = db.prepare(`
-    SELECT * FROM user_info WHERE id = ?
-  `)
-  return stmt.get(id)
 }

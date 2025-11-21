@@ -84,21 +84,37 @@ function processMessage(message) {
         const { id, sessionId, senderId, createTime, type, content } = msgObj
         const timestampMs = new Date(createTime).getTime()
         const timestampSeconds = Math.floor(timestampMs / 1000);
-        console.log(createTime, '=>', timestampSeconds)
 
-        db.insertMessage(id, sessionId, senderId, timestampSeconds, type, content)
+        let senderNickname = 'system'
+        let realContent = content;
+        const atIndex = content.lastIndexOf('@');
+        if (atIndex !== -1) {
+            senderNickname = content.substring(atIndex + 1)
+            realContent = content.substring(0, atIndex)
+        }
+        db.insertMessage(id, sessionId, senderId, senderNickname, timestampSeconds, type, realContent)
         if (type === 'text' || type === 'image' || type === 'file' || type === 'red_packet') {
             mainWindow.changeSession(sessionId)
-            mainWindow.sendMessage(msgObj)
-        } else if( type === 'red_packet_info') {
+            mainWindow.sendMessage({
+                id: id,
+                sessionId: sessionId,
+                senderId: senderId,
+                senderNickname: senderNickname,
+                createTime: timestampSeconds,
+                type: type,
+                content: realContent
+            })
+            db.incrementSessionUnreadCount(sessionId)
+
+        } else if (type === 'red_packet_info') {
             ;
-        } else if( type === 'friend_application') {
+        } else if (type === 'friend_application') {
             ;
-        } else if( type === 'friend_acceptance') {
+        } else if (type === 'friend_acceptance') {
             ;
-        } else if( type === 'group_application') {
+        } else if (type === 'group_application') {
             ;
-        } else if( type === 'group_acceptance') {
+        } else if (type === 'group_acceptance') {
             ;
         } else {
             console.log('unknown message type:', type)

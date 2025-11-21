@@ -160,6 +160,11 @@ app.whenReady().then(() => {
     return db.getSessionList()
   })
 
+  // 获取联系人列表
+  ipcMain.handle('getContactList', () => {
+    return db.getContactList()
+  })
+
   // 获取会话消息列表
   ipcMain.handle('getMessageList', (e, sessionId) => {
     return db.getMessageList(sessionId)
@@ -168,6 +173,11 @@ app.whenReady().then(() => {
   // 获取会话最后一条消息
   ipcMain.handle('getLastMessage', (e, sessionId) => {
     return db.getLastMessage(sessionId)
+  })
+
+  // 判断会话是否是群聊
+  ipcMain.handle('isGroupSession', (e, sessionId) => {
+    return db.isGroupSession(sessionId)
   })
 
   // 重置会话未读消息数
@@ -179,8 +189,6 @@ app.whenReady().then(() => {
   ipcMain.on('sendMessageByWs', (e, message) => {
     sendMessageByWs(message)
   })
-
-
 
   ///////////////////////////////////////////////
   app.on('activate', function () {
