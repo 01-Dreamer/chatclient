@@ -13,7 +13,8 @@ export const useStore = defineStore('user', {
 
     // session 信息
     sessions: [],
-    currentSessionId: -1
+    currentSessionId: -1,
+    selectedMenu: 'chat'
   }),
 
   actions: {

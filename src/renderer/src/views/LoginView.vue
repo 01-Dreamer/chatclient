@@ -104,6 +104,15 @@ const login = () => {
         })
         loading.value = false
         return
+      } else if(data.userId === -2) {
+        ElMessage({
+          type: 'warning',
+          message: '不允许重复登陆',
+          duration: 2000,
+          grouping: true
+        })
+        loading.value = false
+        return
       }
 
       window.api.login({

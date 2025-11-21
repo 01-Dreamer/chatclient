@@ -26,13 +26,13 @@
               <el-icon :size="30">
                 <Document />
               </el-icon>
-              <span class="file-name">{{ message.msg }}</span>
+              <span class="file-name">文件</span>
             </div>
-            <div class="img-msg" v-else-if="message.type === 'img'">
+            <div class="img-msg" v-else-if="message.type === 'image'">
               <img :src="message.msg" alt="error" class="image-content">
             </div>
             <div :class="['money-msg', { 'negative-money': message.msg.startsWith('-') }]"
-              v-else-if="message.type === 'money'">
+              v-else-if="message.type === 'red_packet'">
               <el-icon :size="28" color="#FFF">
                 <Money />
               </el-icon>
@@ -71,8 +71,10 @@
 <script setup>
 import Blank from '@/components/BlankView.vue'
 import { ref, watch, nextTick } from 'vue'
+import { ElMessage } from 'element-plus'
 import { Document, Money, FolderOpened, Scissor, ChatLineSquare, MoreFilled, ChatDotSquare } from '@element-plus/icons-vue'
 import { useStore } from '@/stores/index'
+import $ from 'jquery'
 
 const store = useStore()
 const currentSessionId = ref(0)
@@ -107,6 +109,103 @@ const isTimeGapExceeded = (time1, time2) => {
   return Math.abs(time1 - time2) > 300;
 }
 
+// 上传文件
+const uploadFile = (file) => {
+  return new Promise((resolve) => {
+    if (!file) {
+      resolve(null)
+      return
+    }
+    const formData = new FormData()
+    formData.append('file', file)
+    const url = store.getHttpUrl + '/message/uploadFile'
+    $.ajax({
+      url: url,
+      type: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + store.token
+      },
+      data: formData,
+      processData: false,
+      contentType: false,
+      success: (data) => {
+        resolve(data) 
+      },
+      error: (error) => {
+        resolve(null)
+      }
+    })
+  })
+}
+
+// 发送消息入口
+const sendMessage = (type, content) => {
+  const message = {
+    id: null,
+    sessionId: currentSessionId.value,
+    senderId: store.userId,
+    createTime: null,
+    type: type,
+    content: content + "@" + store.nickname
+  }
+  window.api.sendMessageByWs(JSON.stringify(message))
+}
+
+// 发送文本消息
+const sendTextMessage = () => {
+  if (!inputText.value.trim()) return
+  sendMessage('text', inputText.value.trim())
+  inputText.value = ''
+}
+
+// 发送图片或文件
+const sendImgOrFile = (isImage) => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  if (isImage) {
+    input.accept = 'image/*'
+  }
+  
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (isImage && !file.type.startsWith('image/')) {
+      ElMessage.error('只能发送图片格式文件')
+      return
+    }
+
+    const fileUrl = await uploadFile(file)
+    if (!fileUrl) {
+      ElMessage.error(isImage ? '图片发送失败' : '文件发送失败')
+      return
+    }
+
+    if(isImage) {
+      sendMessage('image', fileUrl)
+    } else {
+      sendMessage('file', fileUrl)
+    }
+  }
+  
+  input.click()
+}
+
+const sendImage = () => sendImgOrFile(true)
+const sendFile = () => sendImgOrFile(false)
+
+
+
+// 发送红包
+const sendRedPacket = () => {
+
+}
+
+// 获取红包
+const getRedPacket = () => {
+
+}
+
 // 添加消息
 let latestTime = 0
 const addMessage = (message) => {
@@ -115,15 +214,33 @@ const addMessage = (message) => {
     formatTime = formatTimestamp(message.createTime)
     latestTime = message.createTime
   }
-  messages.value.push({
-    id: message.id,
-    time: formatTime,
-    nickname: message.senderNickname,
-    type: message.type,
-    msg: message.content,
-    avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + message.senderId + '.png',
-    sender: message.senderId === store.userId
-  })
+  if (message.type === 'red_packet') {
+    // 红包处理[红包ID,金额(分)]
+    const parts = message.content.split('%')
+    const amountInCents = parseInt(parts[1], 10)
+    const amount = (amountInCents / 100).toFixed(2)
+
+    messages.value.push({
+      id: message.id,
+      time: formatTime,
+      nickname: message.senderNickname,
+      type: message.type,
+      msg: amount,
+      redPacketId: parts[0],
+      avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + message.senderId + '.png',
+      sender: message.senderId === store.userId
+    })
+  } else {
+    messages.value.push({
+      id: message.id,
+      time: formatTime,
+      nickname: message.senderNickname,
+      type: message.type,
+      msg: message.content,
+      avatar: 'https://zxydata.oss-cn-chengdu.aliyuncs.com/chat/UserAvatar_' + message.senderId + '.png',
+      sender: message.senderId === store.userId
+    })
+  }
   scrollToBottom()
 }
 
@@ -137,21 +254,6 @@ const updateMessages = async (sessionId) => {
   }
 }
 
-// 发送消息
-const sendTextMessage = () => {
-  if (!inputText.value.trim()) return
-  const message = {
-    id: null,
-    sessionId: currentSessionId.value,
-    senderId: store.userId,
-    createTime: null,
-    type: 'text',
-    content: inputText.value.trim() + "@" + store.nickname
-  }
-  window.api.sendMessageByWs(JSON.stringify(message))
-  inputText.value = ''
-}
-
 // 监听新消息
 window.api.onMessage((message) => {
   if (message.sessionId !== currentSessionId.value) return
@@ -163,6 +265,11 @@ const isGroupSession = async (sessionId) => {
   isGroup.value = await window.api.isGroupSession(sessionId)
 }
 
+// 获取会话名称
+const getSessionName = async (sessionId) => {
+  sessionName.value = await window.api.getSessionName(sessionId)
+}
+
 const props = defineProps({ sessionId: String })
 watch(() => props.sessionId, (id) => {
   if (!id) return
@@ -170,55 +277,55 @@ watch(() => props.sessionId, (id) => {
   if (currentSessionId.value === -1) return
   updateMessages(currentSessionId.value)
   isGroupSession(currentSessionId.value)
+  getSessionName(currentSessionId.value)
 }, { immediate: true })
 
-import Avatar from '@/assets/avatar.jpg'
 const messages = ref([
-  {
-    id: 1,
-    time: '2025-10-3 20:38',
-    nickname: '用户1',
-    type: 'text',
-    msg: '测试消息',
-    avatar: Avatar,
-    sender: false
-  },
-  {
-    id: 2,
-    time: null,
-    nickname: '用户2',
-    type: 'file',
-    msg: '测试文件',
-    avatar: Avatar,
-    sender: false
-  },
-  {
-    id: 3,
-    time: null,
-    nickname: '用户3',
-    type: 'img',
-    msg: Avatar,
-    avatar: Avatar,
-    sender: true
-  },
-  {
-    id: 4,
-    time: '2025-10-3 20:54',
-    nickname: '用户4',
-    type: 'money',
-    msg: '12.00',
-    avatar: Avatar,
-    sender: false
-  },
-  {
-    id: 5,
-    time: null,
-    nickname: '用户5',
-    type: 'money',
-    msg: '-8.88',
-    avatar: Avatar,
-    sender: false
-  }
+  // {
+  //   id: 1,
+  //   time: '2025-10-3 20:38',
+  //   nickname: '用户1',
+  //   type: 'text',
+  //   msg: '测试消息',
+  //   avatar: Avatar,
+  //   sender: false
+  // },
+  // {
+  //   id: 2,
+  //   time: null,
+  //   nickname: '用户2',
+  //   type: 'file',
+  //   msg: '测试文件',
+  //   avatar: Avatar,
+  //   sender: false
+  // },
+  // {
+  //   id: 3,
+  //   time: null,
+  //   nickname: '用户3',
+  //   type: 'img',
+  //   msg: Avatar,
+  //   avatar: Avatar,
+  //   sender: true
+  // },
+  // {
+  //   id: 4,
+  //   time: '2025-10-3 20:54',
+  //   nickname: '用户4',
+  //   type: 'money',
+  //   msg: '12.00',
+  //   avatar: Avatar,
+  //   sender: false
+  // },
+  // {
+  //   id: 5,
+  //   time: null,
+  //   nickname: '用户5',
+  //   type: 'money',
+  //   msg: '-8.88',
+  //   avatar: Avatar,
+  //   sender: false
+  // }
 ])
 </script>
 

@@ -72,7 +72,7 @@ export function insertSession(id, peer_id, name, avatar) {
   peer_id = String(peer_id).split('.')[0]
   const stmt = db.prepare(`
     INSERT INTO session (id, peer_id, name, avatar, unread_count, show)
-    VALUES (?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?)
     ON CONFLICT(id) DO UPDATE SET
       peer_id=excluded.peer_id,
       name=excluded.name,
@@ -87,7 +87,7 @@ export function insertSession(id, peer_id, name, avatar) {
 export function updateSessionShow(id, show) {
   id = String(id).split('.')[0]
   show = String(show).split('.')[0]
-  if (show === -1) {
+  if (show === '-1') {
     current_max_show += 1
     show = current_max_show
   }
@@ -95,6 +95,18 @@ export function updateSessionShow(id, show) {
     UPDATE session SET show = ? WHERE id = ?
   `)
   stmt.run(show, id)
+}
+
+// 显示会话
+export function showSession(id) {
+  id = String(id).split('.')[0]
+  const stmt = db.prepare(`
+    SELECT show FROM session WHERE id = ?
+  `)
+  const row = stmt.get(id)
+  if (row && row.show === 0) {
+    updateSessionShow(id, '-1')
+  }
 }
 
 // 获取会话列表
@@ -132,6 +144,16 @@ export function isGroupSession(sessionId) {
   return row && row.peer_id === -1
 }
 
+// 获取会话名称
+export function getSessionName(sessionId) {
+  sessionId = String(sessionId).split('.')[0]
+  const stmt = db.prepare(`
+    SELECT name FROM session WHERE id = ?
+  `)
+  const row = stmt.get(sessionId)
+  return row ? row.name : null
+}
+
 // 获取会话最后一条消息
 export function getLastMessage(sessionId) {
   sessionId = String(sessionId).split('.')[0]
@@ -139,6 +161,23 @@ export function getLastMessage(sessionId) {
     SELECT * FROM message WHERE sessionId = ? ORDER BY createTime DESC LIMIT 1
   `)
   return stmt.get(sessionId)
+}
+
+// 获取系统消息
+export function getSystemMessageList() {
+  const stmt = db.prepare(`
+    SELECT * FROM message WHERE sessionId = -1 ORDER BY createTime DESC
+  `)
+  return stmt.all()
+}
+
+// 删除消息
+export function deleteMessage(id) {
+  id = String(id).split('.')[0]
+  const stmt = db.prepare(`
+    DELETE FROM message WHERE id = ?
+  `)
+  stmt.run(id)
 }
 
 // 增加会话未读消息数

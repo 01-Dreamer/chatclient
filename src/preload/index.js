@@ -31,6 +31,14 @@ const api = {
     return ipcRenderer.invoke('getSessionList')
   },
 
+  hideSession: (id) => {
+    ipcRenderer.send('hideSession', id)
+  },
+
+  showSession: (id) => {
+    ipcRenderer.send('showSession', id)
+  },
+
   getContactList: () => {
     return ipcRenderer.invoke('getContactList')
   },
@@ -67,6 +75,22 @@ const api = {
 
   isGroupSession: (sessionId) => {
     return ipcRenderer.invoke('isGroupSession', sessionId)
+  },
+
+  getSystemMessageList: () => {
+    return ipcRenderer.invoke('getSystemMessageList')
+  },
+
+  deleteMessage: (id) => {
+    ipcRenderer.send('deleteMessage', id)
+  },
+
+  addSession: (session) => {
+    ipcRenderer.send('addSession', session)
+  },
+
+  getSessionName: (sessionId) => {
+    return ipcRenderer.invoke('getSessionName', sessionId)
   }
 
 }
