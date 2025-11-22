@@ -42,5 +42,28 @@
     "vite": "^7.0.5",
     "vue": "^3.5.17",
     "vue-eslint-parser": "^10.2.0"
+  },
+  "build": {
+    "productName": "chatclient",
+    "appId": "com.zxylarn.top.chatclient",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "resources/icon.ico" 
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "chatclient"
+    }
   }
 }
