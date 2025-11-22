@@ -28,7 +28,7 @@
               </el-icon>
               <span class="file-name">{{ message.msg.substr(82) }}</span>
             </div>
-            <div class="img-msg" v-else-if="message.type === 'image'">
+            <div class="img-msg" v-else-if="message.type === 'image'" @click="downloadFile(message.msg)">
               <img :src="message.msg" alt="error" class="image-content">
             </div>
             <div :class="['money-msg', { 'negative-money': message.msg.startsWith('-') }]"
@@ -196,7 +196,7 @@ const sendImgOrFile = (isImage) => {
 const sendImage = () => sendImgOrFile(true)
 const sendFile = () => sendImgOrFile(false)
 
-
+// 发送红包
 const sendRedPacket = () => {
   ElMessageBox.prompt('请输入红包金额', '发送红包', {
     confirmButtonText: '确定',
@@ -257,6 +257,10 @@ const getRedPacket = (id, redPacketId, amount) => {
         ElMessage.error('红包已被领取或过期')
       }
       window.api.updateMessageContent(id, redPacketId + '%-' + amount)
+      const message = messages.value.find(msg => msg.id === id)
+      if (message) {
+        message.msg = '-' + (parseInt(amount, 10) / 100).toFixed(2)
+      }
     },
     error: (error) => {
       error;
@@ -265,7 +269,7 @@ const getRedPacket = (id, redPacketId, amount) => {
   })
 }
 
-// 下载文件[弹出文件保存对话框]（主进程没有提供API）
+// 下载文件
 const downloadFile = (fileUrl) => {
   const link = document.createElement('a')
   link.href = fileUrl
@@ -310,7 +314,10 @@ const addMessage = (message) => {
       sender: message.senderId === store.userId
     })
   }
-  scrollToBottom()
+
+  if(message.senderId === store.userId) {
+    scrollToBottom()
+  }
 }
 
 // 获取会话信息
@@ -321,6 +328,7 @@ const updateMessages = async (sessionId) => {
   for (const message of messageList) {
     addMessage(message)
   }
+  scrollToBottom()
 }
 
 // 监听新消息

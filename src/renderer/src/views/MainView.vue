@@ -82,7 +82,7 @@ import { useStore } from '@/stores/index'
 import { storeToRefs } from 'pinia'
 import { ElMessage } from 'element-plus'
 import $ from 'jquery'
-
+import jsQR from 'jsqr'
 
 const store = useStore()
 const { selectedMenu } = storeToRefs(store)
@@ -102,10 +102,10 @@ const addFriend = () => {
     url: url,
     type: 'POST',
     headers: {
-        'Authorization': 'Bearer ' + store.token
+      'Authorization': 'Bearer ' + store.token
     },
     success: (data) => {
-      if(data) {
+      if (data) {
         ElMessage.success('好友请求已发送')
         searchText.value = ''
       } else {
@@ -131,10 +131,10 @@ const joinGroup = () => {
     url: url,
     type: 'POST',
     headers: {
-        'Authorization': 'Bearer ' + store.token
+      'Authorization': 'Bearer ' + store.token
     },
     success: (data) => {
-      if(data) {
+      if (data) {
         ElMessage.success('群聊请求已发送')
         searchText.value = ''
       } else {
@@ -160,10 +160,10 @@ const createGroup = () => {
     url: url,
     type: 'POST',
     headers: {
-        'Authorization': 'Bearer ' + store.token
+      'Authorization': 'Bearer ' + store.token
     },
     success: (data) => {
-      if(data !== -1) {
+      if (data !== -1) {
         window.api.addSession({
           id: data,
           name: name,
@@ -183,9 +183,107 @@ const createGroup = () => {
   })
 }
 
+// 扫一扫
 const scan = () => {
-  ElMessage.warning('功能暂未开放')
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/*' // 限制只能选择图片
+
+  input.onchange = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // 校验是否为图片
+    if (!file.type.startsWith('image/')) {
+      ElMessage.error('请上传有效的二维码图片')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      const img = new Image()
+      img.src = event.target.result
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        canvas.width = img.width
+        canvas.height = img.height
+        ctx.drawImage(img, 0, 0)
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height)
+        const code = jsQR(imageData.data, imageData.width, imageData.height)
+        if (code) {
+          try {
+            const parsedData = JSON.parse(code.data)
+            if (parsedData.type === 'loginAuth') {
+              sendLoginAuth(parsedData.authCode)
+            } else if (parsedData.type === 'payment') {
+              sendPayment(parsedData.redPacketId, parsedData.amount)
+            } else {
+              ElMessage.warning('二维码内容无效')
+            }
+          } catch (error) {
+            error;
+            ElMessage.warning('二维码内容无效')
+          }
+        } else {
+          ElMessage.warning('图片中未识别到二维码')
+        }
+      }
+    }
+    reader.readAsDataURL(file)
+  }
+
+  input.click()
 }
+
+// 授权登录
+const sendLoginAuth = (authCode) => {
+  const url = store.getHttpUrl + '/auth/setUserInfo?uuid=' + authCode;
+  $.ajax({
+    url: url,
+    type: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + store.token
+    },
+    success: (data) => {
+      if (data) {
+        ElMessage.success('授权登录成功')
+      } else {
+        ElMessage.error('授权登录失败')
+      }
+    },
+    error: (error) => {
+      error;
+      ElMessage.error('授权登录失败')
+    }
+  })
+}
+
+// 支付操作
+const sendPayment = (redPacketId, amount) => {
+  const url = store.getHttpUrl + '/payment/setRedPacket?redPacketId=' + redPacketId + '&amount=' + amount;
+  $.ajax({
+    url: url,
+    type: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + store.token
+    },
+    success: (data) => {
+      if (data) {
+        ElMessage.success('支付成功')
+      } else {
+        ElMessage.error('余额不足')
+      }
+    },
+    error: (error) => {
+      error;
+      ElMessage.error('支付失败')
+    }
+  })
+}
+
 
 const handlePlusCommand = (command) => {
   switch (command) {

@@ -114,7 +114,7 @@ function processMessage(message) {
         } else if (type === 'friend_acceptance') {
             // 好友申请通过
             const friendAcInfo = JSON.parse(content);
-            if(friendAcInfo.applicantId === store.userId) { // 我是申请者
+            if((String)(friendAcInfo.applicantId) === (String)(store.userId)) { // 我是申请者
                 db.insertSession(friendAcInfo.sessionId, friendAcInfo.requesterId, friendAcInfo.requesterNickname, 'null');
             } else { // 我是被添加者
                 db.insertSession(friendAcInfo.sessionId, friendAcInfo.applicantId, friendAcInfo.applicantNickname, 'null');
