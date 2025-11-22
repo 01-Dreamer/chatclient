@@ -116,7 +116,6 @@ const handleFileChange = (event) => {
     success: (data) => {
       if (data) {
         ElMessage.success('头像上传成功')
-        user.value.avatar = store.getHttpUrl + '/chat/UserAvatar_' + store.userId + '.png'
       } else {
         ElMessage.error('头像上传失败')
       }

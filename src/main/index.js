@@ -46,7 +46,7 @@ function createWindow() {
     autoHideMenuBar: true,
     titleBarStyle: "hidden",
     resizable: false,
-    frame: true,
+    frame: false,
     transparent: true,
     icon: icon,
     webPreferences: {
@@ -127,6 +127,7 @@ app.whenReady().then(() => {
 
     // 全屏前信息记录
     const bounds = win?.getBounds()
+    console.log('bounds', bounds)
     lastMainViewWidth = bounds.width
     lastMainViewHeight = bounds.height
     lastPositionX = bounds.x
@@ -139,6 +140,7 @@ app.whenReady().then(() => {
   // 恢复窗口
   ipcMain.on('resetScreen', () => {
     const win = BrowserWindow.getFocusedWindow()
+    win?.setFullScreen(false)
     win?.setSize(lastMainViewWidth, lastMainViewHeight)
     win?.setPosition(lastPositionX, lastPositionY)
   })
